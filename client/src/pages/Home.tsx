@@ -1,5 +1,6 @@
 // Civic Index design note: this page is the research desk — orient first, reveal useful synthetic outputs, and keep external actions explicit.
 import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Badge } from "@/components/ui/badge";
@@ -46,11 +47,11 @@ import {
 } from "@/lib/generators";
 
 const navItems = [
-  { id: "overview", label: "Dashboard", icon: Compass },
-  { id: "trends", label: "Trends Explorer", icon: Flame },
-  { id: "addresses", label: "Address Generator", icon: MapPin },
-  { id: "places", label: "Places Explorer", icon: Map },
-  { id: "documents", label: "PDF & Book Finder", icon: BookOpen },
+  { id: "overview", href: "/", label: "Dashboard", icon: Compass },
+  { id: "trends", href: "/trends", label: "Trends Explorer", icon: Flame },
+  { id: "addresses", href: "/addresses", label: "Address Generator", icon: MapPin },
+  { id: "places", href: "/places", label: "Places Explorer", icon: Map },
+  { id: "documents", href: "/documents", label: "PDF & Book Finder", icon: BookOpen },
 ];
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -145,7 +146,10 @@ function EmptyState({ text }: { text: string }) {
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const [country, setCountry] = useState<CountryProfile>(() => findCountry(localStorage.getItem("country-tools-country") ?? defaultCountry.code));
-  const [activeTool, setActiveTool] = useState("overview");
+  const [location] = useLocation();
+  const activeNavItem = navItems.find((item) => item.href === location) ?? navItems[0];
+  const activeTool = activeNavItem.id;
+  const isOverview = activeTool === "overview";
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [lastAction, setLastAction] = useState("Ready for a new set");
 
@@ -178,11 +182,7 @@ export default function Home() {
 
   const filteredTrends = useMemo(() => trends.filter((trend) => trend.keyword.toLowerCase().includes(trendFilter.toLowerCase()) || trend.category.toLowerCase().includes(trendFilter.toLowerCase())), [trends, trendFilter]);
 
-  const navigateTo = (id: string) => {
-    setActiveTool(id);
-    setMobileNavOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const closeMobileNav = () => setMobileNavOpen(false);
 
   const generateTrendsNow = () => {
     setTrends(generateTrendIdeas(country, trendCategory, Number(trendCount)));
@@ -235,12 +235,12 @@ export default function Home() {
         <div className="sidebar-rule" />
         <div className="sidebar-label">Workspace</div>
         <nav className="primary-nav" aria-label="Primary navigation">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button className={cx("nav-item", activeTool === id && "nav-item--active")} key={id} onClick={() => navigateTo(id)} type="button">
+          {navItems.map(({ id, href, label, icon: Icon }) => (
+            <Link className={cx("nav-item", activeTool === id && "nav-item--active")} key={id} href={href} onClick={closeMobileNav}>
               <Icon size={17} />
               <span>{label}</span>
               {activeTool === id && <span className="nav-dot" />}
-            </button>
+            </Link>
           ))}
         </nav>
         <div className="sidebar-country-card">
@@ -292,34 +292,34 @@ export default function Home() {
             <div className="pulse-strip__stamp">UPDATED<br /><b>JUST NOW</b></div>
           </section>
 
-          <div className="workspace-intro"><div><span className="eyebrow">01 / TOOLKIT</span><h2>Pick a signal. Build a route.</h2></div><p>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</p></div>
+          <div className="workspace-intro"><div><span className="eyebrow">{isOverview ? "01 / TOOLKIT" : `${String(navItems.findIndex((item) => item.id === activeTool) + 1).padStart(2, "0")} / INTERFACE`}</span><h2>{isOverview ? "Pick a signal. Build a route." : activeNavItem.label}</h2></div><p>{isOverview ? <>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</> : <>Focused interface for <strong>{country.name}</strong>. Change country above, then generate a fresh working set.</>}</p></div>
 
-          <div className="tool-grid">
-            <ToolCard id="trends" className="tool-card--wide">
+          <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
+            {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">
               <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Create country-aware keyword angles to validate in Google Trends." icon={Flame} note="DEMO DATA / NO LIVE API" />
               <div className="tool-controls"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={["3", "5", "8", "10"]} /><label className="field-control search-control"><span>Filter results</span><span className="input-wrap"><Search size={15} /><input value={trendFilter} onChange={(event) => setTrendFilter(event.target.value)} placeholder="Search this set" /></span></label><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button></div>
               <div className="notice-banner"><Lightbulb size={16} /><span><strong>Generated trend ideas</strong> — randomized country examples, not real-time Google Trends data. Use the links below to validate live interest.</span></div>
               {filteredTrends.length ? <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Signal</span><span>Actions</span></div>{filteredTrends.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><strong>{trend.keyword}</strong><small>{trend.searchQuery}</small></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><div className="signal-score"><span className="score-bar"><i style={{ width: `${trend.score}%` }} /></span><small>{trend.trendType}</small></div><div className="row-actions"><CopyButton text={trend.searchQuery} compact /><ExternalButton label="Google search" url={openGoogleSearch(trend.searchQuery)} /><ExternalButton label="Validate trends" url={openGoogleTrends(trend.keyword)} tone="accent" /></div></div>)}</div> : <EmptyState text="No trend ideas match this filter. Try a broader phrase or generate a new set." />}
-            </ToolCard>
+            </ToolCard>}
 
-            <ToolCard id="addresses" className="tool-card--address">
+            {(isOverview || activeTool === "addresses") && <ToolCard id="addresses" className="tool-card--address">
               <SectionIntro index="02" eyebrow="Location seed" title="Random Address Generator" description="Create plausible address-shaped context for demos and search exploration." icon={MapPin} note="SYNTHETIC ONLY" />
               <div className="tool-controls tool-controls--two"><SelectControl label="Addresses" value={addressCount} onChange={setAddressCount} options={["1", "3", "5"]} /><button className="primary-button" onClick={generateAddressesNow} type="button"><RefreshCw size={15} /> Make synthetic addresses</button></div>
               <div className="notice-banner notice-banner--warm"><MapPin size={16} /><span><strong>Synthetic / Random Address</strong> — not guaranteed to be a real location. Verify before using.</span></div>
               <div className="address-list">{addresses.map((address) => <article className="address-row" key={address.id}><div className="address-pin"><MapPin size={15} /></div><div className="address-copy"><strong>{address.houseNumber} {address.street} Street</strong><span>{address.city}, {address.region} {address.postalCode}</span><small>{address.country}</small></div><div className="row-actions"><CopyButton text={address.formatted} compact /><ExternalButton label="Google Maps" url={openGoogleMaps(address.formatted)} icon={<Map size={14} />} tone="accent" /></div></article>)}</div>
-            </ToolCard>
+            </ToolCard>}
 
-            <ToolCard id="places" className="tool-card--places">
+            {(isOverview || activeTool === "places") && <ToolCard id="places" className="tool-card--places">
               <div className="places-visual"><div className="places-visual__overlay" /><div className="places-visual__label"><span className="eyebrow">03 / MAP INDEX</span><strong>Find a place<br />to begin.</strong></div><div className="map-crosshair"><span /><span /></div></div>
               <div className="tool-card__body"><SectionIntro index="03" eyebrow="Place query" title="Random Places Explorer" description="Turn a country and a place type into ready-to-search Google Maps prompts." icon={Map} note="SEARCH IDEAS" /><div className="tool-controls tool-controls--three"><SelectControl label="Place type" value={placeType} onChange={setPlaceType} options={placeTypeOptions} /><SelectControl label="Queries" value={placeCount} onChange={setPlaceCount} options={["3", "4", "6", "8"]} /><button className="primary-button" onClick={generatePlacesNow} type="button"><RefreshCw size={15} /> Build map queries</button></div><div className="notice-banner notice-banner--teal"><Target size={16} /><span>Search query generated by the tool. Verify the location on Google Maps.</span></div><div className="place-list">{places.map((place) => <article className="place-row" key={place.id}><div className="place-icon"><Map size={16} /></div><div className="place-copy"><div><Badge variant="outline" className="soft-badge soft-badge--teal">{place.placeType}</Badge><span className="place-region">{place.region}</span></div><strong>{place.query}</strong><small>{place.city}, {place.country}</small></div><div className="row-actions"><CopyButton text={place.query} compact /><ExternalButton label="Google Maps" url={openGoogleMaps(place.query)} icon={<ExternalLink size={14} />} tone="accent" /></div></article>)}</div></div>
-            </ToolCard>
+            </ToolCard>}
 
-            <ToolCard id="documents" className="tool-card--documents">
+            {(isOverview || activeTool === "documents") && <ToolCard id="documents" className="tool-card--documents">
               <SectionIntro index="04" eyebrow="Open access route" title="PDF & Book Finder" description="Build legal Google search queries for public, open-access, and educational material." icon={BookOpen} note="LEGAL DISCOVERY" />
               <div className="tool-controls tool-controls--document"><SelectControl label="Content type" value={documentType} onChange={setDocumentType} options={documentTypeOptions} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><SelectControl label="Language" value={documentLanguage} onChange={setDocumentLanguage} options={languageOptions} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={["5", "10", "20"]} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button></div>
               <div className="notice-banner notice-banner--safe"><BookOpen size={16} /><span><strong>Publicly available material only.</strong> These queries do not bypass paywalls, DRM, copyright restrictions, or access controls.</span></div>
               <div className="document-list">{documents.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{document.query}</strong><div><Badge variant="outline" className="soft-badge">{document.contentType}</Badge><span>Suggested source: {document.source}</span></div></div><div className="row-actions"><CopyButton text={document.query} compact /><ExternalButton label="Google search" url={openGoogleSearch(document.query)} icon={<Search size={14} />} tone="accent" /></div></article>)}</div>
-            </ToolCard>
+            </ToolCard>}
           </div>
 
           <footer className="workspace-footer"><div><div className="footer-mark"><span className="orange-line" /> CT / COUNTRY TOOLS</div><p>A transparent frontend workspace for location-aware research prompts.</p></div><div className="footer-links"><span>NO API KEY</span><span>LOCAL STORAGE</span><span>DEMO DATA LABELLED</span></div></footer>

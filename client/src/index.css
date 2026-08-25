@@ -195,6 +195,7 @@
 
 .tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
 .tool-card { overflow: hidden; border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow-soft); scroll-margin-top: 92px; }
+.tool-grid--single .tool-card { grid-column: 1 / -1; }
 .tool-card--wide { grid-column: 1 / -1; }
 .section-intro { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 15px; padding: 26px 27px 23px; border-bottom: 1px solid var(--line); }
 .section-intro__index { color: var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600; }
@@ -255,7 +256,7 @@
 .address-copy strong, .place-copy strong, .document-copy strong { display: block; overflow: hidden; color: var(--ink); font-family: "Space Grotesk", sans-serif; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .address-copy span, .address-copy small, .place-copy small, .document-copy span { display: block; margin-top: 3px; color: var(--muted-foreground); font-size: 11px; }
 .address-copy small { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
-.places-visual { position: relative; min-height: 155px; overflow: hidden; background-color: var(--paper-deep); background-image: url("/manus-storage/civic-index-map-card_7b4ca95e.png"); background-position: center; background-size: cover; }
+.places-visual { position: relative; min-height: 155px; overflow: hidden; background-color: var(--paper-deep); background-image: linear-gradient(118deg, transparent 0 13%, rgba(242,106,61,.55) 13.2% 13.4%, transparent 13.6% 42%, rgba(62,143,139,.42) 42.2% 42.5%, transparent 42.7% 66%, rgba(18,35,63,.55) 66.2% 66.5%, transparent 66.7%), linear-gradient(27deg, transparent 0 22%, rgba(18,35,63,.3) 22.2% 22.4%, transparent 22.6% 52%, rgba(62,143,139,.36) 52.2% 52.5%, transparent 52.7% 80%, rgba(242,106,61,.42) 80.2% 80.5%, transparent 80.7%), repeating-linear-gradient(90deg, transparent 0 48px, rgba(18,35,63,.13) 49px 50px), repeating-linear-gradient(0deg, transparent 0 34px, rgba(18,35,63,.12) 35px 36px); background-position: center; background-size: cover; }
 .places-visual__overlay { position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--ink) 78%, transparent), transparent 75%); }
 .places-visual__label { position: absolute; left: 27px; top: 26px; color: #f8f4ed; }
 .places-visual__label .eyebrow { color: #ffb79e; }
