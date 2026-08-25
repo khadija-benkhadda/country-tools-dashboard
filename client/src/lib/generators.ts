@@ -101,15 +101,19 @@ const createId = (prefix: string, index: number) => `${prefix}-${Date.now()}-${i
 
 export const generateTrendIdeas = (country: CountryProfile, category: string, count: number): TrendIdea[] => {
   const available = country.trendIdeas[category] ?? country.trendIdeas.All;
-  const selected = shuffle(available).slice(0, Math.min(count, available.length));
-  return selected.map((keyword, index) => ({
-    id: createId("trend", index),
-    keyword,
-    category,
-    trendType: pick(trendTypes),
-    searchQuery: `${keyword} ${country.name}`,
-    score: randomInt(64, 98),
-  }));
+  const randomizedIdeas = shuffle(available);
+  return Array.from({ length: count }, (_, index) => {
+    const keyword = randomizedIdeas[index % randomizedIdeas.length];
+    const city = country.cities[index % country.cities.length];
+    return {
+      id: createId("trend", index),
+      keyword,
+      category,
+      trendType: pick(trendTypes),
+      searchQuery: `${keyword} ${city}, ${country.name}`,
+      score: randomInt(64, 98),
+    };
+  });
 };
 
 const fillPostalPattern = (pattern: string) =>
@@ -144,8 +148,9 @@ export const generateRandomAddress = (country: CountryProfile, index = 0): Synth
 export const generateAddresses = (country: CountryProfile, count: number) => Array.from({ length: count }, (_, index) => generateRandomAddress(country, index));
 
 export const generateMapQueries = (country: CountryProfile, placeType: string, count: number): PlaceQuery[] => {
-  const types = placeType === "Random" ? shuffle(placeTypes).slice(0, count) : Array.from({ length: count }, () => placeType);
-  return types.map((type, index) => {
+  const types = placeType === "Random" ? Array.from({ length: count }, (_, index) => placeTypes[index % placeTypes.length]) : Array.from({ length: count }, () => placeType);
+  const randomizedTypes = shuffle(types);
+  return randomizedTypes.map((type, index) => {
     const cityIndex = randomInt(0, country.cities.length - 1);
     const city = country.cities[cityIndex];
     const region = country.regions[cityIndex] ?? country.regions[0];
@@ -194,10 +199,10 @@ export const generatePdfQueries = (topic: string, country: CountryProfile, conte
 };
 
 export const defaultToolCounts = {
-  trends: 5,
-  addresses: 3,
-  places: 4,
-  documents: 5,
+  trends: 1000,
+  addresses: 1000,
+  places: 1000,
+  documents: 1000,
 };
 
 export const placeTypeOptions = ["Random", ...placeTypes];
