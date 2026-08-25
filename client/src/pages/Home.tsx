@@ -71,7 +71,7 @@ function copyToClipboard(text: string, label = "Copied to clipboard") {
 }
 
 function copyAllResults<T>(rows: T[], formatter: (row: T) => string, label: string) {
-  copyToClipboard(rows.map(formatter).join("\\n"), `${rows.length.toLocaleString()} ${label} copied`);
+  copyToClipboard(rows.map(formatter).join("\n"), `${rows.length.toLocaleString()} ${label} copied`);
 }
 
 function openExternal(url: string) {

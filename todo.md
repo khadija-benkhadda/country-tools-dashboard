@@ -21,3 +21,9 @@
 - [x] Add Copy all results controls to every generator and the imported-results workspace.
 - [x] Ensure copy-all uses the complete dataset, not only the bounded visual preview.
 - [x] Rebuild and verify the updated controls across desktop and mobile routes.
+
+## Copy formatting
+
+- [x] Ensure every Copy all results operation writes exactly one result per line.
+- [x] Keep imported headers and one imported record per line without embedded line breaks.
+- [x] Validate the copy formatting and save a new checkpoint.
