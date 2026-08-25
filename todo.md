@@ -27,3 +27,9 @@
 - [x] Ensure every Copy all results operation writes exactly one result per line.
 - [x] Keep imported headers and one imported record per line without embedded line breaks.
 - [x] Validate the copy formatting and save a new checkpoint.
+
+## Copy without country name
+
+- [x] Remove country suffixes from copied trend and place query text.
+- [x] Keep visible rows and external links unchanged.
+- [x] Validate the normalized copy format and save a new checkpoint.
