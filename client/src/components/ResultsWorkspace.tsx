@@ -17,10 +17,10 @@ const formatValue = (value: unknown) => {
   return String(value);
 };
 
-const copyText = async (value: string) => {
+const copyText = async (value: string, label = "Result copied") => {
   try {
     await navigator.clipboard.writeText(value);
-    toast.success("Result copied");
+    toast.success(label);
   } catch {
     toast.error("Copy failed — select the text manually.");
   }
@@ -70,6 +70,12 @@ export default function ResultsWorkspace({ dataset, onDatasetChange }: ResultsWo
     toast.success("Uploaded results randomized");
   };
 
+  const copyAllResults = () => {
+    if (!dataset) return;
+    const tsv = [dataset.columns.join("\t"), ...dataset.rows.map((row) => dataset.columns.map((column) => formatValue(row[column]).replaceAll("\t", " ").replaceAll("\n", " ")).join("\t"))].join("\n");
+    copyText(tsv, `${dataset.rows.length.toLocaleString()} results copied`);
+  };
+
   const downloadResults = () => {
     if (!dataset) return;
     const exportData = formatRowsForExport(filteredRows, dataset.columns);
@@ -86,6 +92,7 @@ export default function ResultsWorkspace({ dataset, onDatasetChange }: ResultsWo
       <div className="import-workspace__controls">
         <input ref={inputRef} className="visually-hidden-input" type="file" accept=".csv,.json,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => handleFile(event.target.files?.[0])} />
         <button className="primary-button" type="button" onClick={() => inputRef.current?.click()}><Upload size={15} /> Upload Results</button>
+        <button className="secondary-button" type="button" onClick={copyAllResults} disabled={!dataset}><Clipboard size={15} /> Copy all results</button>
         <button className="secondary-button" type="button" onClick={clearResults} disabled={!dataset}><Trash2 size={15} /> Clear Results</button>
         <button className="secondary-button" type="button" onClick={shuffleResults} disabled={!dataset}><Shuffle size={15} /> Randomize Results</button>
         <span className="export-control"><label htmlFor="export-format">Export as</label><select id="export-format" value={exportFormat} onChange={(event) => setExportFormat(event.target.value as ExportFormat)} disabled={!dataset}><option value="csv">CSV</option><option value="xlsx">Excel</option><option value="json">JSON</option></select><button className="secondary-button" type="button" onClick={downloadResults} disabled={!dataset}><Download size={15} /> Export Results</button></span>
