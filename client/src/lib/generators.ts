@@ -169,25 +169,9 @@ const cleanTopic = (topic: string) => topic.trim().replace(/["“”]/g, "") || 
 
 export const generatePdfQueries = (topic: string, country: CountryProfile, contentType: string, language: string, count: number): DocumentQuery[] => {
   const safeTopic = cleanTopic(topic);
-  const sources = sourcePatterns[contentType] ?? sourcePatterns.Guide;
-  const templates = [
-    `filetype:pdf "${safeTopic}" ${contentType.toLowerCase()}`,
-    `filetype:pdf "${safeTopic}" ${contentType.toLowerCase()} ${country.name}`,
-    `${pick(sources)} "${safeTopic}" filetype:pdf`,
-    `site:openstax.org "${safeTopic}"`,
-    `site:archive.org "${safeTopic}" ${contentType.toLowerCase()}`,
-    `site:edu "${safeTopic}" filetype:pdf`,
-    `site:gov "${safeTopic}" filetype:pdf`,
-    `site:doaj.org "${safeTopic}"`,
-    `"${safeTopic}" open access ${contentType.toLowerCase()}`,
-    `"${safeTopic}" ${contentType.toLowerCase()} public domain`,
-    `"${safeTopic}" ${contentType.toLowerCase()} ${country.language}`,
-  ];
-  const languageTerm = languageTerms[language];
-  const withLanguage = languageTerm ? templates.map((template) => `${template} ${languageTerm}`) : templates;
-  const uniqueTemplates = shuffle(Array.from(new Set(withLanguage)));
+  const shortQuery = `${safeTopic} pdf`;
   return Array.from({ length: count }, (_, index) => {
-    const query = uniqueTemplates[index % uniqueTemplates.length];
+    const query = shortQuery;
     return {
       id: createId("document", index),
       query,

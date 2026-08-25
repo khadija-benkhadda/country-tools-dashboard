@@ -33,3 +33,9 @@
 - [x] Remove country suffixes from copied trend and place query text.
 - [x] Keep visible rows and external links unchanged.
 - [x] Validate the normalized copy format and save a new checkpoint.
+
+## Short PDF and book queries
+
+- [x] Define a concise book-title-plus-pdf query format.
+- [x] Update PDF and Book Finder generation, display, and copy behavior.
+- [x] Preserve a clear public/legal-use notice and validate the route before checkpointing.
