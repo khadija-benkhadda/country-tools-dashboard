@@ -39,3 +39,9 @@
 - [x] Define a concise book-title-plus-pdf query format.
 - [x] Update PDF and Book Finder generation, display, and copy behavior.
 - [x] Preserve a clear public/legal-use notice and validate the route before checkpointing.
+
+## Random short PDF and book results
+
+- [x] Add a frontend title pool and topic-aware title variation.
+- [x] Randomize the PDF/Book collection on every generation while keeping `title pdf` output.
+- [x] Validate 1,000+ results, uniqueness in the preview, and the short copy format.

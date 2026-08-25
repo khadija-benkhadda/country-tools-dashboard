@@ -167,11 +167,30 @@ export const generateMapQueries = (country: CountryProfile, placeType: string, c
 
 const cleanTopic = (topic: string) => topic.trim().replace(/["“”]/g, "") || "open learning";
 
+const shortTitleVariants = (topic: string) => {
+  const variants = [
+    topic,
+    `${topic} handbook`,
+    `${topic} guide`,
+    `${topic} manual`,
+    `${topic} reference`,
+    `${topic} workbook`,
+    `${topic} field notes`,
+    `${topic} essentials`,
+    `${topic} study book`,
+    `${topic} learning book`,
+    `${topic} open edition`,
+    `${topic} public guide`,
+  ];
+  return shuffle(Array.from(new Set(variants)));
+};
+
 export const generatePdfQueries = (topic: string, country: CountryProfile, contentType: string, language: string, count: number): DocumentQuery[] => {
   const safeTopic = cleanTopic(topic);
-  const shortQuery = `${safeTopic} pdf`;
+  const titles = shortTitleVariants(safeTopic);
   return Array.from({ length: count }, (_, index) => {
-    const query = shortQuery;
+    const title = titles[index % titles.length];
+    const query = `${title} pdf`;
     return {
       id: createId("document", index),
       query,
