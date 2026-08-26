@@ -38,6 +38,12 @@ export type DocumentQuery = {
   source: string;
 };
 
+export type EmailPair = {
+  id: string;
+  subject: string;
+  message: string;
+};
+
 const trendTypes = ["Rising idea", "Breakout angle", "Seasonal signal", "Local pulse"];
 const placeTypes = ["Restaurant", "Coffee Shop", "Bookstore", "Library", "Museum", "Park", "Shopping Center", "Hotel", "Gym", "Cinema", "Tourist Attraction", "University", "Local Market"];
 const contentSources: Record<string, string> = {
@@ -229,6 +235,32 @@ const publicBookTitles = [
   "The Awakening",
   "The Wonderful Visit",
 ];
+
+const emailSubjectParts = {
+  openers: ["Quick follow-up", "A small update", "Checking in", "One thing to share", "A note for you", "Next steps", "Friendly reminder", "Thank you", "Your request", "A helpful update"],
+  topics: ["on your request", "about the details", "for this week", "on the next step", "about our conversation", "for your review", "on the plan", "about the schedule", "for your reference", "before we continue"],
+};
+
+const emailMessageParts = {
+  greetings: ["Hi,", "Hello,", "Hope you’re well,", "Good morning,", "Good afternoon,"],
+  bodies: ["Thanks for your message. I wanted to share a quick update.", "I’m following up with the information we discussed.", "Thank you for your time. Here is the next step.", "I appreciate your help and wanted to keep you informed.", "Just sharing a brief note so we can stay aligned.", "Thanks for checking in. I’ll keep this moving.", "I’ve reviewed the details and wanted to update you.", "Here is a short update for your reference."],
+  closers: ["Please let me know what you think.", "I’ll follow up soon.", "Thanks again.", "Let me know if you need anything else.", "Looking forward to your reply.", "Have a great day."],
+};
+
+export const generateEmailPairs = (count: number): EmailPair[] => {
+  const pool = Array.from({ length: emailSubjectParts.openers.length * emailSubjectParts.topics.length * emailMessageParts.greetings.length * emailMessageParts.bodies.length * emailMessageParts.closers.length }, (_, index) => {
+    const subject = `${emailSubjectParts.openers[Math.floor(index / emailSubjectParts.topics.length) % emailSubjectParts.openers.length]} ${emailSubjectParts.topics[index % emailSubjectParts.topics.length]}`;
+    const greeting = emailMessageParts.greetings[Math.floor(index / emailMessageParts.bodies.length) % emailMessageParts.greetings.length];
+    const body = emailMessageParts.bodies[Math.floor(index / (emailMessageParts.greetings.length * emailMessageParts.closers.length)) % emailMessageParts.bodies.length];
+    const closer = emailMessageParts.closers[index % emailMessageParts.closers.length];
+    return { subject, message: `${greeting} ${body} ${closer}` };
+  });
+  const shuffled = shuffle(pool);
+  return Array.from({ length: count }, (_, index) => {
+    const pair = shuffled[index % shuffled.length];
+    return { id: createId("email", index), subject: pair.subject + (index >= shuffled.length ? ` — ${index + 1}` : ""), message: pair.message + (index >= shuffled.length ? ` Ref: ${index + 1}.` : "") };
+  });
+};
 
 export const generatePdfQueries = (topic: string, country: CountryProfile, contentType: string, language: string, count: number): DocumentQuery[] => {
   const safeTopic = cleanTopic(topic);

@@ -15,6 +15,7 @@ import {
   Lightbulb,
   Map,
   MapPin,
+  Mail,
   Menu,
   MessageCircle,
   Moon,
@@ -37,6 +38,8 @@ import {
   placeTypeOptions,
   trendCategoryOptions,
   type DocumentQuery,
+  type EmailPair,
+  generateEmailPairs,
   type PlaceQuery,
   type SyntheticAddress,
   type TrendIdea,
@@ -48,6 +51,7 @@ const navItems = [
   { id: "places", href: "/places", label: "Places Explorer", icon: Map },
   { id: "documents", href: "/documents", label: "PDF & Book Finder", icon: BookOpen },
   { id: "replies", href: "/replies", label: "Short Reply Generator", icon: MessageCircle },
+  { id: "emails", href: "/emails", label: "Gmail Subject + Message", icon: Mail },
 ];
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -213,6 +217,8 @@ export default function Home() {
   const [documentCount, setDocumentCount] = useState("1,000");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
+  const [emailCount, setEmailCount] = useState("1,000");
+  const [emailPairs, setEmailPairs] = useState<EmailPair[]>(() => generateEmailPairs(defaultToolCounts.documents));
   const [selectedReplyTones, setSelectedReplyTones] = useState<string[]>(() => {
     const stored = localStorage.getItem("country-tools-reply-tones");
     if (stored) {
@@ -322,6 +328,13 @@ export default function Home() {
     setGeneratedReplies([]);
   };
 
+  const generateEmailPairsNow = () => {
+    const count = parseResultCount(emailCount);
+    setEmailPairs(generateEmailPairs(count));
+    setLastAction(`${count.toLocaleString()} Gmail subject/message pairs generated`);
+    toast.success(`${count.toLocaleString()} email pairs ready`);
+  };
+
   const randomizeEverything = () => {
     const otherCountries = countryProfiles.filter((profile) => profile.code !== country.code);
     const nextCountry = otherCountries[Math.floor(Math.random() * otherCountries.length)];
@@ -392,6 +405,12 @@ export default function Home() {
               <div className={cx("reply-output", !generatedReplies.length && "reply-output--empty")}>
                 {generatedReplies.length ? <div className="reply-list">{generatedReplies.map((reply, index) => <div className="reply-list__row" key={`${reply}-${index}`}><span>{String(index + 1).padStart(4, "0")}</span><p>{reply}</p></div>)}</div> : <div><span className="eyebrow">Generated replies</span><p>Choose a tone and generate 1,000 short replies.</p></div>}
               </div>
+            </ToolCard>}
+
+            {activeTool === "emails" && <ToolCard id="emails" className="tool-card--emails">
+              <SectionIntro index="06" eyebrow="Email utility" title="Gmail Subject + Message Generator" description="Generate random email subjects and messages with one-to-one row pairing." icon={Mail} note="FRONTEND ONLY" />
+              <div className="reply-composer email-composer"><div className="reply-direct-note"><Mail size={18} /><div><strong>Paired results</strong><p>Subject 1 always matches Message 1, Subject 2 matches Message 2, and so on.</p></div></div><div className="reply-actions"><SelectControl label="Pairs" value={emailCount} onChange={setEmailCount} options={resultCountOptions} /><button className="primary-button" onClick={generateEmailPairsNow} type="button"><Mail size={15} /> Generate pairs</button><button className="secondary-button" onClick={() => copyToClipboard(emailPairs.map((pair, index) => `${index + 1}. Subject: ${pair.subject}\nMessage: ${pair.message}`).join("\n\n"), `${emailPairs.length.toLocaleString()} pairs copied`)} type="button"><Clipboard size={15} /> Copy paired results</button></div></div>
+              <div className="email-pair-list">{emailPairs.map((pair, index) => <article className="email-pair-row" key={pair.id}><span className="email-pair-row__index">{String(index + 1).padStart(4, "0")}</span><div><strong>Subject: {pair.subject}</strong><p>Message: {pair.message}</p></div></article>)}</div><div className="preview-note">Displaying {emailPairs.length.toLocaleString()} paired results. Each subject and message share the same row.</div>
             </ToolCard>}
 
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">

@@ -108,3 +108,10 @@
 - [x] Replace the single tone select with a multi-tone control.
 - [x] Generate unique replies from all selected tones.
 - [x] Validate selected-tone display, 1,000+ results, and responsive behavior.
+
+## Gmail subject and message pairs
+
+- [x] Add a frontend generator for paired random email subjects and messages.
+- [x] Preserve one-to-one pairing by shared row ID and line number.
+- [x] Add 1,000+ volume controls and separate copy actions for subjects, messages, and paired rows.
+- [x] Add a dedicated route and validate the responsive layout.

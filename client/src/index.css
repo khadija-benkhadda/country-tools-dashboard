@@ -652,3 +652,31 @@
 /* Multi-tone reply selector: same compact control language as the country selector. */
 .tone-multi-select { min-width: 13rem; }
 .tone-dot { width: 0.45rem; height: 0.45rem; border-radius: 999px; background: var(--primary); }
+
+/* Gmail pair utility: subject and message stay visually locked to the same numbered row. */
+.email-pair-list {
+  max-height: 34rem;
+  overflow-y: auto;
+  margin-top: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.email-pair-row {
+  display: grid;
+  grid-template-columns: 3.6rem 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.95rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-pair-row:last-child { border-bottom: 0; }
+.email-pair-row__index { padding-top: 0.1rem; color: var(--primary); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; }
+.email-pair-row strong { display: block; color: var(--foreground); font-family: "Space Grotesk", sans-serif; font-size: 0.88rem; }
+.email-pair-row p { margin: 0.35rem 0 0; color: var(--muted-foreground); font-size: 0.86rem; line-height: 1.5; }
+
+@media (max-width: 680px) {
+  .email-pair-list { max-height: 28rem; }
+  .email-pair-row { grid-template-columns: 2.7rem 1fr; gap: 0.7rem; padding-inline: 1rem; }
+}
