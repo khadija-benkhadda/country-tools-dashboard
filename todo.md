@@ -52,3 +52,10 @@
 - [x] Remove the Current Context and Frontend Mode sidebar panels.
 - [x] Keep the navigation, country selector, theme toggle, and active tool usable.
 - [x] Verify desktop/mobile spacing and save a new checkpoint.
+
+## Random books and no dashboard
+
+- [x] Add a frontend catalog of varied book titles for random PDF results.
+- [x] Generate one random book title plus `pdf` per result, with at least 1,000 rows.
+- [x] Remove the Dashboard navigation item and route, using a dedicated tool as the default entry.
+- [x] Validate the remaining routes and save a new checkpoint.

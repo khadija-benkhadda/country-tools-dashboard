@@ -11,7 +11,6 @@ import {
   FileSpreadsheet,
   ChevronDown,
   Clipboard,
-  Compass,
   ExternalLink,
   Flame,
   Globe2,
@@ -49,7 +48,6 @@ import {
 } from "@/lib/generators";
 
 const navItems = [
-  { id: "overview", href: "/", label: "Dashboard", icon: Compass },
   { id: "trends", href: "/trends", label: "Trends Explorer", icon: Flame },
   { id: "addresses", href: "/addresses", label: "Address Generator", icon: MapPin },
   { id: "places", href: "/places", label: "Places Explorer", icon: Map },

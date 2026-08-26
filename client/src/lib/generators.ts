@@ -167,27 +167,72 @@ export const generateMapQueries = (country: CountryProfile, placeType: string, c
 
 const cleanTopic = (topic: string) => topic.trim().replace(/["“”]/g, "") || "open learning";
 
-const shortTitleVariants = (topic: string) => {
-  const variants = [
-    topic,
-    `${topic} handbook`,
-    `${topic} guide`,
-    `${topic} manual`,
-    `${topic} reference`,
-    `${topic} workbook`,
-    `${topic} field notes`,
-    `${topic} essentials`,
-    `${topic} study book`,
-    `${topic} learning book`,
-    `${topic} open edition`,
-    `${topic} public guide`,
-  ];
-  return shuffle(Array.from(new Set(variants)));
-};
+const publicBookTitles = [
+  "Logafjöll",
+  "The Little Prince",
+  "The Odyssey",
+  "Pride and Prejudice",
+  "Jane Eyre",
+  "Wuthering Heights",
+  "Frankenstein",
+  "Dracula",
+  "The Time Machine",
+  "The War of the Worlds",
+  "The Secret Garden",
+  "The Wonderful Wizard of Oz",
+  "The Call of the Wild",
+  "The Adventures of Sherlock Holmes",
+  "Alice's Adventures in Wonderland",
+  "Through the Looking-Glass",
+  "Treasure Island",
+  "The Count of Monte Cristo",
+  "The Three Musketeers",
+  "A Tale of Two Cities",
+  "Great Expectations",
+  "Oliver Twist",
+  "The Picture of Dorian Gray",
+  "The Importance of Being Earnest",
+  "The Wind in the Willows",
+  "The Jungle Book",
+  "The Prophet",
+  "The Republic",
+  "Meditations",
+  "The Art of War",
+  "Walden",
+  "The Prince",
+  "Candide",
+  "The Metamorphosis",
+  "The Trial",
+  "The Stranger",
+  "Les Misérables",
+  "The Red and the Black",
+  "Don Quixote",
+  "The Divine Comedy",
+  "The Canterbury Tales",
+  "The Adventures of Tom Sawyer",
+  "The Adventures of Huckleberry Finn",
+  "The Scarlet Letter",
+  "Little Women",
+  "The Age of Innocence",
+  "The Souls of Black Folk",
+  "The Autobiography of Benjamin Franklin",
+  "Common Sense",
+  "The Federalist Papers",
+  "On Liberty",
+  "The Wealth of Nations",
+  "The Origin of Species",
+  "The Interpretation of Dreams",
+  "The Story of My Life",
+  "The Last of the Mohicans",
+  "The House of the Seven Gables",
+  "The Yellow Wallpaper",
+  "The Awakening",
+  "The Wonderful Visit",
+];
 
 export const generatePdfQueries = (topic: string, country: CountryProfile, contentType: string, language: string, count: number): DocumentQuery[] => {
   const safeTopic = cleanTopic(topic);
-  const titles = shortTitleVariants(safeTopic);
+  const titles = shuffle([...publicBookTitles]);
   return Array.from({ length: count }, (_, index) => {
     const title = titles[index % titles.length];
     const query = `${title} pdf`;
