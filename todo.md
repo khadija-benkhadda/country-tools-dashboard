@@ -173,3 +173,9 @@
 - Trends Explorer should prioritize a compact research table with keyword, category, and direct Google Trends validation links.
 - Google Trends links should use the last 7 days window (`now 7-d`) instead of exposing a local synthetic week selector.
 - Technical uniqueness suffixes must not appear in displayed or copied trend keywords.
+
+## GitHub push
+
+- [ ] Verify the target repository and local Git status.
+- [ ] Prepare a clean commit containing the current Country Tools project.
+- [ ] Push the commit to the requested GitHub repository and confirm the branch and commit.
