@@ -65,3 +65,9 @@
 - [x] Remove Upload Results from the sidebar navigation.
 - [x] Remove the `/results` route and related active-tool behavior.
 - [x] Validate the remaining Trends, Address, Places, and PDF/Book routes.
+
+## Remove row actions
+
+- [x] Remove per-row Copy, Validate trends, and Google Maps buttons.
+- [x] Keep global Copy all results controls available.
+- [x] Validate row alignment and responsive layouts across the remaining tools.

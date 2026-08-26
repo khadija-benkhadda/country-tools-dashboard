@@ -9,7 +9,6 @@ import {
   Check,
   ChevronDown,
   Clipboard,
-  ExternalLink,
   Flame,
   Globe2,
   Layers3,
@@ -34,8 +33,6 @@ import {
   generatePdfQueries,
   generateTrendIdeas,
   languageOptions,
-  openGoogleMaps,
-  openGoogleTrends,
   placeTypeOptions,
   trendCategoryOptions,
   type DocumentQuery,
@@ -71,34 +68,6 @@ function stripCountrySuffix(value: string, countryName: string) {
 
 function copyAllResults<T>(rows: T[], formatter: (row: T) => string, label: string, countryName: string) {
   copyToClipboard(rows.map((row) => stripCountrySuffix(formatter(row), countryName)).join("\n"), `${rows.length.toLocaleString()} ${label} copied`);
-}
-
-function openExternal(url: string) {
-  window.open(url, "_blank", "noopener,noreferrer");
-}
-
-function CopyButton({ text, compact = false }: { text: string; compact?: boolean }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    copyToClipboard(text);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1400);
-  };
-  return (
-    <button className={cx("inline-action", compact && "inline-action--compact")} onClick={handleCopy} type="button" aria-label="Copy result">
-      {copied ? <Check size={14} /> : <Clipboard size={14} />}
-      <span>{copied ? "Copied" : "Copy"}</span>
-    </button>
-  );
-}
-
-function ExternalButton({ label, url, icon = <ExternalLink size={14} />, tone = "quiet" }: { label: string; url: string; icon?: React.ReactNode; tone?: "quiet" | "accent" }) {
-  return (
-    <button className={cx("inline-action", tone === "accent" && "inline-action--accent")} type="button" onClick={() => openExternal(url)}>
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
 }
 
 function SelectControl({ label, value, onChange, options, className = "" }: { label: string; value: string; onChange: (value: string) => void; options: string[]; className?: string }) {
@@ -287,7 +256,7 @@ export default function Home() {
               <div className="tool-controls"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={resultCountOptions} /><label className="field-control search-control"><span>Filter results</span><span className="input-wrap"><Search size={15} /><input value={trendFilter} onChange={(event) => setTrendFilter(event.target.value)} placeholder="Search this set" /></span></label><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyAllResults(trends, (trend) => trend.searchQuery, "trend results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
               <div className="notice-banner"><Lightbulb size={16} /><span><strong>Generated trend ideas</strong> — randomized country examples, not real-time Google Trends data. Use the links below to validate live interest.</span></div>
               {filteredTrends.length === 0 && <EmptyState text="No trend ideas match this filter. Try a broader phrase or generate a new set." />}
-              {filteredTrends.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Signal</span><span>Actions</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><strong>{trend.keyword}</strong><small>{trend.searchQuery}</small></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><div className="signal-score"><span className="score-bar"><i style={{ width: `${trend.score}%` }} /></span><small>{trend.trendType}</small></div><div className="row-actions"><CopyButton text={stripCountrySuffix(trend.searchQuery, country.name)} compact /><ExternalButton label="Validate trends" url={openGoogleTrends(trend.keyword)} tone="accent" /></div></div>)}</div>}
+              {filteredTrends.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Signal</span><span>Actions</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><strong>{trend.keyword}</strong><small>{trend.searchQuery}</small></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><div className="signal-score"><span className="score-bar"><i style={{ width: `${trend.score}%` }} /></span><small>{trend.trendType}</small></div></div>)}</div>}
               {filteredTrends.length > trendPreview.length && <div className="preview-note">Previewing {trendPreview.length.toLocaleString()} of {filteredTrends.length.toLocaleString()} generated ideas. The full collection stays in memory for filtering and export.</div>}
             </ToolCard>}
 
@@ -295,19 +264,19 @@ export default function Home() {
               <SectionIntro index="02" eyebrow="Location seed" title="Random Address Generator" description="Create plausible address-shaped context for demos and search exploration." icon={MapPin} note="SYNTHETIC ONLY" />
               <div className="tool-controls tool-controls--two"><SelectControl label="Addresses" value={addressCount} onChange={setAddressCount} options={resultCountOptions} /><button className="primary-button" onClick={generateAddressesNow} type="button"><RefreshCw size={15} /> Make synthetic addresses</button><button className="secondary-button" onClick={() => copyAllResults(addresses, (address) => address.formatted, "address results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
               <div className="notice-banner notice-banner--warm"><MapPin size={16} /><span><strong>Synthetic / Random Address</strong> — not guaranteed to be a real location. Verify before using.</span></div>
-              <div className="address-list">{addressPreview.map((address) => <article className="address-row" key={address.id}><div className="address-pin"><MapPin size={15} /></div><div className="address-copy"><strong>{address.houseNumber} {address.street} Street</strong><span>{address.city}, {address.region} {address.postalCode}</span><small>{address.country}</small></div><div className="row-actions"><CopyButton text={stripCountrySuffix(address.formatted, country.name)} compact /><ExternalButton label="Google Maps" url={openGoogleMaps(address.formatted)} icon={<Map size={14} />} tone="accent" /></div></article>)}</div><div className="preview-note">Previewing {addressPreview.length.toLocaleString()} of {addresses.length.toLocaleString()} generated addresses. The full collection stays available for future export workflows.</div>
+              <div className="address-list">{addressPreview.map((address) => <article className="address-row" key={address.id}><div className="address-pin"><MapPin size={15} /></div><div className="address-copy"><strong>{address.houseNumber} {address.street} Street</strong><span>{address.city}, {address.region} {address.postalCode}</span><small>{address.country}</small></div></article>)}</div><div className="preview-note">Previewing {addressPreview.length.toLocaleString()} of {addresses.length.toLocaleString()} generated addresses. The full collection stays available for future export workflows.</div>
             </ToolCard>}
 
             {(isOverview || activeTool === "places") && <ToolCard id="places" className="tool-card--places">
               <div className="places-visual"><div className="places-visual__overlay" /><div className="places-visual__label"><span className="eyebrow">03 / MAP INDEX</span><strong>Find a place<br />to begin.</strong></div><div className="map-crosshair"><span /><span /></div></div>
-              <div className="tool-card__body"><SectionIntro index="03" eyebrow="Place query" title="Random Places Explorer" description="Turn a country and a place type into ready-to-search Google Maps prompts." icon={Map} note="SEARCH IDEAS" /><div className="tool-controls tool-controls--three"><SelectControl label="Place type" value={placeType} onChange={setPlaceType} options={placeTypeOptions} /><SelectControl label="Queries" value={placeCount} onChange={setPlaceCount} options={resultCountOptions} /><button className="primary-button" onClick={generatePlacesNow} type="button"><RefreshCw size={15} /> Build map queries</button><button className="secondary-button" onClick={() => copyAllResults(places, (place) => place.query, "place results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div><div className="notice-banner notice-banner--teal"><Target size={16} /><span>Search query generated by the tool. Verify the location on Google Maps.</span></div><div className="place-list">{placePreview.map((place) => <article className="place-row" key={place.id}><div className="place-icon"><Map size={16} /></div><div className="place-copy"><div><Badge variant="outline" className="soft-badge soft-badge--teal">{place.placeType}</Badge><span className="place-region">{place.region}</span></div><strong>{place.query}</strong><small>{place.city}, {place.country}</small></div><div className="row-actions"><CopyButton text={stripCountrySuffix(place.query, country.name)} compact /><ExternalButton label="Google Maps" url={openGoogleMaps(place.query)} icon={<ExternalLink size={14} />} tone="accent" /></div></article>)}</div><div className="preview-note">Previewing {placePreview.length.toLocaleString()} of {places.length.toLocaleString()} generated map queries. The full collection stays in memory.</div></div>
+              <div className="tool-card__body"><SectionIntro index="03" eyebrow="Place query" title="Random Places Explorer" description="Turn a country and a place type into ready-to-search Google Maps prompts." icon={Map} note="SEARCH IDEAS" /><div className="tool-controls tool-controls--three"><SelectControl label="Place type" value={placeType} onChange={setPlaceType} options={placeTypeOptions} /><SelectControl label="Queries" value={placeCount} onChange={setPlaceCount} options={resultCountOptions} /><button className="primary-button" onClick={generatePlacesNow} type="button"><RefreshCw size={15} /> Build map queries</button><button className="secondary-button" onClick={() => copyAllResults(places, (place) => place.query, "place results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div><div className="notice-banner notice-banner--teal"><Target size={16} /><span>Search query generated by the tool. Verify the location on Google Maps.</span></div><div className="place-list">{placePreview.map((place) => <article className="place-row" key={place.id}><div className="place-icon"><Map size={16} /></div><div className="place-copy"><div><Badge variant="outline" className="soft-badge soft-badge--teal">{place.placeType}</Badge><span className="place-region">{place.region}</span></div><strong>{place.query}</strong><small>{place.city}, {place.country}</small></div></article>)}</div><div className="preview-note">Previewing {placePreview.length.toLocaleString()} of {places.length.toLocaleString()} generated map queries. The full collection stays in memory.</div></div>
             </ToolCard>}
 
             {(isOverview || activeTool === "documents") && <ToolCard id="documents" className="tool-card--documents">
               <SectionIntro index="04" eyebrow="Open access route" title="PDF & Book Finder" description="Create short public-document queries in the format: book name + pdf." icon={BookOpen} note="LEGAL DISCOVERY" />
               <div className="tool-controls tool-controls--document"><SelectControl label="Content type" value={documentType} onChange={setDocumentType} options={documentTypeOptions} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><SelectControl label="Language" value={documentLanguage} onChange={setDocumentLanguage} options={languageOptions} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={resultCountOptions} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button><button className="secondary-button" onClick={() => copyAllResults(documents, (document) => document.query, "document results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
               <div className="notice-banner notice-banner--safe"><BookOpen size={16} /><span><strong>Publicly available material only.</strong> These queries do not bypass paywalls, DRM, copyright restrictions, or access controls.</span></div>
-              <div className="document-list">{documentPreview.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{document.query}</strong></div><div className="row-actions"><CopyButton text={stripCountrySuffix(document.query, country.name)} compact /></div></article>)}</div><div className="preview-note">Previewing {documentPreview.length.toLocaleString()} of {documents.length.toLocaleString()} generated document queries. The full collection stays in memory.</div>
+              <div className="document-list">{documentPreview.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{document.query}</strong></div></article>)}</div><div className="preview-note">Previewing {documentPreview.length.toLocaleString()} of {documents.length.toLocaleString()} generated document queries. The full collection stays in memory.</div>
             </ToolCard>}
           </div>
 
