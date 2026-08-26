@@ -231,6 +231,13 @@
 
 ## Push latest cleaned version to GitHub
 
-- [ ] Verify the local branch and GitHub remote.
-- [ ] Commit any remaining local changes.
-- [ ] Push `main` and confirm the remote commit.
+- [x] Verify the local branch and GitHub remote.
+- [x] Commit any remaining local changes.
+- [x] Push `main` and confirm the remote commit.
+
+## PDF & Book multi-select content types
+
+- [x] Audit the existing language multi-select and document generation state.
+- [x] Add a checkbox multi-select for Content type.
+- [x] Distribute generated queries across the selected content types.
+- [x] Validate persistence, responsive layout, build, and save the update.
