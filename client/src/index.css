@@ -617,3 +617,34 @@
 .reply-direct-note > svg { color: var(--primary); }
 .reply-direct-note strong { display: block; color: var(--foreground); font-family: "Space Grotesk", sans-serif; font-size: 0.92rem; }
 .reply-direct-note p { margin: 0.2rem 0 0; font-size: 0.82rem; }
+
+/* Civic Index reply results: keep large sets visible in a contained, readable scroll region. */
+.reply-output:has(.reply-list) {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.reply-list {
+  max-height: 34rem;
+  overflow-y: auto;
+  background: var(--card);
+}
+
+.reply-list__row {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.72rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.reply-list__row:last-child { border-bottom: 0; }
+.reply-list__row > span { color: var(--primary); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; }
+.reply-list__row p { margin: 0; color: var(--foreground); font-size: 0.88rem; }
+
+@media (max-width: 680px) {
+  .reply-list { max-height: 28rem; }
+  .reply-list__row { grid-template-columns: 2.8rem 1fr; padding-inline: 1rem; }
+}

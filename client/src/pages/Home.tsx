@@ -194,7 +194,8 @@ export default function Home() {
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
   const [replyTone, setReplyTone] = useState("Simple");
-  const [generatedReply, setGeneratedReply] = useState("");
+  const [replyCount, setReplyCount] = useState("1,000");
+  const [generatedReplies, setGeneratedReplies] = useState<string[]>([]);
 
   const generateAcrossCountries = <T,>(total: number, generator: (profile: CountryProfile, count: number) => T[]) => {
     const base = Math.floor(total / selectedCountries.length);
@@ -244,21 +245,23 @@ export default function Home() {
     toast.success("Search ideas refreshed");
   };
 
+  const replyOptions: Record<string, string[]> = {
+    Simple: ["Thanks for your message.", "Thanks for your help.", "Thanks for everything.", "I appreciate it.", "Got it, thank you.", "That sounds good, thanks."],
+    Polite: ["Thank you very much. I appreciate it.", "Thank you for your message.", "Many thanks for your help.", "I appreciate your time and support.", "Thank you. I’ll follow up shortly."],
+    Casual: ["Thanks for everything!", "Thanks a lot!", "Got it, thanks!", "Really appreciate it!", "Sounds good, thank you!"],
+  };
+
   const generateReplyNow = () => {
-    const replyOptions: Record<string, string[]> = {
-      Simple: ["Thanks for your message.", "Thanks for your help.", "Thanks for everything.", "I appreciate it.", "Got it, thank you.", "That sounds good, thanks."],
-      Polite: ["Thank you very much. I appreciate it.", "Thank you for your message.", "Many thanks for your help.", "I appreciate your time and support.", "Thank you. I’ll follow up shortly."],
-      Casual: ["Thanks for everything!", "Thanks a lot!", "Got it, thanks!", "Really appreciate it!", "Sounds good, thank you!"],
-    };
     const options = replyOptions[replyTone] ?? replyOptions.Simple;
-    const nextReply = options[Math.floor(Math.random() * options.length)];
-    setGeneratedReply(nextReply);
-    setLastAction("Short reply generated");
-    toast.success("Short reply ready");
+    const count = parseResultCount(replyCount);
+    const nextReplies = Array.from({ length: count }, (_, index) => options[(Math.floor(Math.random() * options.length) + index) % options.length]);
+    setGeneratedReplies(nextReplies);
+    setLastAction(`${count.toLocaleString()} short replies generated`);
+    toast.success(`${count.toLocaleString()} replies ready`);
   };
 
   const clearReply = () => {
-    setGeneratedReply("");
+    setGeneratedReplies([]);
   };
 
   const randomizeEverything = () => {
@@ -325,10 +328,12 @@ export default function Home() {
             {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
               <SectionIntro index="05" eyebrow="Message utility" title="Short Reply Generator" description="Generate a simple, short response instantly." icon={MessageCircle} note="FRONTEND ONLY" />
               <div className="reply-composer">
-                <div className="reply-direct-note"><MessageCircle size={18} /><div><strong>Ready to reply?</strong><p>Choose a tone and generate a short message instantly.</p></div></div>
-                <div className="reply-actions"><SelectControl label="Tone" value={replyTone} onChange={setReplyTone} options={["Simple", "Polite", "Casual"]} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate reply</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
+                <div className="reply-direct-note"><MessageCircle size={18} /><div><strong>Ready to reply?</strong><p>Choose a tone and generate a large set of short messages instantly.</p></div></div>
+                <div className="reply-actions"><SelectControl label="Tone" value={replyTone} onChange={setReplyTone} options={["Simple", "Polite", "Casual"]} /><SelectControl label="Results" value={replyCount} onChange={setReplyCount} options={resultCountOptions} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate replies</button><button className="secondary-button" onClick={() => copyToClipboard(generatedReplies.join("\n"), `${generatedReplies.length.toLocaleString()} replies copied`)} disabled={!generatedReplies.length} type="button"><Clipboard size={15} /> Copy all replies</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
               </div>
-              <div className={cx("reply-output", !generatedReply && "reply-output--empty")}><div><span className="eyebrow">Generated reply</span><p>{generatedReply || "Your short reply will appear here."}</p></div>{generatedReply && <CopyButton text={generatedReply} compact />}</div>
+              <div className={cx("reply-output", !generatedReplies.length && "reply-output--empty")}>
+                {generatedReplies.length ? <div className="reply-list">{generatedReplies.map((reply, index) => <div className="reply-list__row" key={`${reply}-${index}`}><span>{String(index + 1).padStart(4, "0")}</span><p>{reply}</p></div>)}</div> : <div><span className="eyebrow">Generated replies</span><p>Choose a tone and generate 1,000 short replies.</p></div>}
+              </div>
             </ToolCard>}
 
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">

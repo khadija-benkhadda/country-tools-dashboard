@@ -90,3 +90,9 @@
 - [x] Remove the Paste Message textarea from Reply Generator.
 - [x] Generate random short replies directly from the selected tone.
 - [x] Keep Copy reply and Clear actions, then validate the simplified layout.
+
+## Multiple short replies
+
+- [x] Add result-count options starting at 1,000 for Reply Generator.
+- [x] Generate and display multiple short replies in a scrollable result list.
+- [x] Add Copy all replies and validate the 1,000-result flow.
