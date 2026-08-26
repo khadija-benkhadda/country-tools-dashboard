@@ -200,3 +200,10 @@
 - [x] Add Vercel output-directory and SPA fallback configuration.
 - [x] Validate the production build and push the correction to GitHub.
 - [x] Provide the Vercel redeployment steps.
+
+## Trends Copy all results
+
+- [x] Audit the existing copy helper and Trends results rendering.
+- [x] Add a visible Copy all results button to Trends Explorer.
+- [x] Copy one keyword per line without country names or metadata.
+- [x] Validate the interaction, build, and responsive layout.
