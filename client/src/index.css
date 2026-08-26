@@ -602,3 +602,18 @@
   .reply-actions .field-control, .reply-actions button { width: 100%; }
   .reply-output { align-items: stretch; flex-direction: column; padding: 1rem; }
 }
+
+/* Civic Index direct reply mode: remove message-entry friction and make generation the primary action. */
+.reply-direct-note {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border: 1px dashed var(--border);
+}
+
+.reply-direct-note > svg { color: var(--primary); }
+.reply-direct-note strong { display: block; color: var(--foreground); font-family: "Space Grotesk", sans-serif; font-size: 0.92rem; }
+.reply-direct-note p { margin: 0.2rem 0 0; font-size: 0.82rem; }

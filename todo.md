@@ -84,3 +84,9 @@
 - [x] Generate concise local replies from any pasted message with simple tone choices.
 - [x] Add Generate, Copy reply, and Clear actions with useful empty states.
 - [x] Validate the route, copy behavior, and responsive layout.
+
+## Direct short reply mode
+
+- [x] Remove the Paste Message textarea from Reply Generator.
+- [x] Generate random short replies directly from the selected tone.
+- [x] Keep Copy reply and Clear actions, then validate the simplified layout.

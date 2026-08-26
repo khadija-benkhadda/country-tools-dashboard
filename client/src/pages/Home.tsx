@@ -193,7 +193,6 @@ export default function Home() {
   const [documentCount, setDocumentCount] = useState("1,000");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
-  const [replyMessage, setReplyMessage] = useState("");
   const [replyTone, setReplyTone] = useState("Simple");
   const [generatedReply, setGeneratedReply] = useState("");
 
@@ -246,27 +245,19 @@ export default function Home() {
   };
 
   const generateReplyNow = () => {
-    const message = replyMessage.trim();
-    if (!message) {
-      toast.error("Paste a message first");
-      return;
-    }
-    const lower = message.toLowerCase();
-    const isThanks = /thank|thanks|appreciate|grateful/.test(lower);
-    const isQuestion = /\\?|how|what|when|where|can you|could you/.test(lower);
-    const isRequest = /please|need|send|share|help|request/.test(lower);
-    const replies = replyTone === "Polite"
-      ? isThanks ? "Thank you very much. I appreciate it." : isQuestion ? "Thanks for asking. I’ll check and get back to you shortly." : isRequest ? "Thanks for your message. I’ll take a look and follow up soon." : "Thanks for your message. I appreciate you reaching out."
-      : replyTone === "Casual"
-        ? isThanks ? "Thanks for everything!" : isQuestion ? "Thanks for asking — I’ll get back to you soon." : isRequest ? "Got it, thanks. I’ll take a look." : "Thanks for your message!"
-        : isThanks ? "Thanks for everything." : isQuestion ? "Thanks for asking. I’ll get back to you soon." : isRequest ? "Thanks for your message. I’ll take a look." : "Thanks for your message.";
-    setGeneratedReply(replies);
+    const replyOptions: Record<string, string[]> = {
+      Simple: ["Thanks for your message.", "Thanks for your help.", "Thanks for everything.", "I appreciate it.", "Got it, thank you.", "That sounds good, thanks."],
+      Polite: ["Thank you very much. I appreciate it.", "Thank you for your message.", "Many thanks for your help.", "I appreciate your time and support.", "Thank you. I’ll follow up shortly."],
+      Casual: ["Thanks for everything!", "Thanks a lot!", "Got it, thanks!", "Really appreciate it!", "Sounds good, thank you!"],
+    };
+    const options = replyOptions[replyTone] ?? replyOptions.Simple;
+    const nextReply = options[Math.floor(Math.random() * options.length)];
+    setGeneratedReply(nextReply);
     setLastAction("Short reply generated");
     toast.success("Short reply ready");
   };
 
   const clearReply = () => {
-    setReplyMessage("");
     setGeneratedReply("");
   };
 
@@ -332,9 +323,9 @@ export default function Home() {
 
           <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
             {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
-              <SectionIntro index="05" eyebrow="Message utility" title="Short Reply Generator" description="Create a simple, short response from any pasted message." icon={MessageCircle} note="FRONTEND ONLY" />
+              <SectionIntro index="05" eyebrow="Message utility" title="Short Reply Generator" description="Generate a simple, short response instantly." icon={MessageCircle} note="FRONTEND ONLY" />
               <div className="reply-composer">
-                <label className="field-control reply-message-field"><span>Paste message</span><textarea value={replyMessage} onChange={(event) => setReplyMessage(event.target.value)} placeholder="Example: Thanks for all your help..." rows={7} /></label>
+                <div className="reply-direct-note"><MessageCircle size={18} /><div><strong>Ready to reply?</strong><p>Choose a tone and generate a short message instantly.</p></div></div>
                 <div className="reply-actions"><SelectControl label="Tone" value={replyTone} onChange={setReplyTone} options={["Simple", "Polite", "Casual"]} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate reply</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
               </div>
               <div className={cx("reply-output", !generatedReply && "reply-output--empty")}><div><span className="eyebrow">Generated reply</span><p>{generatedReply || "Your short reply will appear here."}</p></div>{generatedReply && <CopyButton text={generatedReply} compact />}</div>
