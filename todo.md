@@ -193,3 +193,10 @@
 - [x] Remove the Express server entrypoint and server-only build output.
 - [x] Validate the Vite static build and client-side routes.
 - [x] Save and document the frontend-only version.
+
+## Vercel 404 fix
+
+- [x] Audit Vite output and deployment configuration for Vercel.
+- [x] Add Vercel output-directory and SPA fallback configuration.
+- [x] Validate the production build and push the correction to GitHub.
+- [x] Provide the Vercel redeployment steps.
