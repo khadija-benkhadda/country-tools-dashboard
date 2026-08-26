@@ -45,3 +45,10 @@
 - [x] Add a frontend title pool and topic-aware title variation.
 - [x] Randomize the PDF/Book collection on every generation while keeping `title pdf` output.
 - [x] Validate 1,000+ results, uniqueness in the preview, and the short copy format.
+
+## Simplified interface layout
+
+- [x] Remove the large hero/map content from the active workspace.
+- [x] Remove the Current Context and Frontend Mode sidebar panels.
+- [x] Keep the navigation, country selector, theme toggle, and active tool usable.
+- [x] Verify desktop/mobile spacing and save a new checkpoint.

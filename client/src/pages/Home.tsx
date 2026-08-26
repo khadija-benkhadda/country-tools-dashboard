@@ -263,17 +263,7 @@ export default function Home() {
             </Link>
           ))}
         </nav>
-        <div className="sidebar-country-card">
-          <div className="sidebar-country-card__label"><span className="orange-line" /> Current context</div>
-          <div className="sidebar-country-card__main"><span className="sidebar-country-code">{country.code}</span><div><strong>{country.name}</strong><small>{country.region}</small></div></div>
-          <div className="sidebar-country-card__route"><span /><span /><span /></div>
-          <p>All instruments follow this country. Change it once, keep the route consistent.</p>
-        </div>
         <div className="sidebar-bottom">
-          <div className="rail-card">
-            <div className="rail-card__top"><span className="status-dot" /> Frontend mode</div>
-            <p>Demo data stays transparent. External search opens in a new tab.</p>
-          </div>
           <div className="sidebar-footer"><span>CT / 01</span><span>v1.0.0</span></div>
         </div>
       </aside>
@@ -291,25 +281,9 @@ export default function Home() {
         </header>
 
         <div className="workspace">
-          <section className="hero-panel" id="overview">
-            <div className="hero-panel__texture" />
-            <div className="hero-panel__content">
-              <div className="hero-kicker"><span className="orange-line" /> Country-aware search utilities</div>
-              <h1>Sharper starting points<br /><em>for every country.</em></h1>
-              <p>Generate research prompts, synthetic location context, and legal discovery queries — then take the useful parts straight to Google.</p>
-              <div className="hero-meta"><span className="hero-meta__code">{country.code}</span><span>{country.name}</span><span className="meta-divider" /><span>{country.region}</span></div>
-            </div>
-            <div className="hero-panel__control"><CountrySelect country={country} onChange={setCountry} /></div>
-            <div className="hero-coordinates">{country.code} · {country.region.toUpperCase()}<br />45° 12′ N / 06° 08′ E</div>
-          </section>
-
-          <section className="pulse-strip" aria-label="Workspace summary">
-            <div className="pulse-strip__lead"><span className="pulse-mark"><TrendingUp size={15} /></span><div><span className="eyebrow">Selected country</span><strong>{country.name}</strong></div></div>
-            <div className="pulse-stat"><span className="eyebrow">Trend ideas</span><strong>{formatCount(trends.length)}</strong></div>
-            <div className="pulse-stat"><span className="eyebrow">Addresses</span><strong>{formatCount(addresses.length)}</strong></div>
-            <div className="pulse-stat"><span className="eyebrow">Maps searches</span><strong>{formatCount(places.length)}</strong></div>
-            <div className="pulse-stat"><span className="eyebrow">Document queries</span><strong>{formatCount(documents.length)}</strong></div>
-            <div className="pulse-strip__stamp">UPDATED<br /><b>JUST NOW</b></div>
+          <section className="workspace-toolbar" aria-label="Current workspace">
+            <div className="workspace-toolbar__identity"><span className="eyebrow">Selected country</span><strong>{country.name}</strong><span className="workspace-toolbar__region">{country.code} · {country.region}</span></div>
+            <CountrySelect country={country} onChange={setCountry} compact />
           </section>
 
           <div className="workspace-intro"><div><span className="eyebrow">{isOverview ? "01 / TOOLKIT" : `${String(navItems.findIndex((item) => item.id === activeTool) + 1).padStart(2, "0")} / INTERFACE`}</span><h2>{isOverview ? "Pick a signal. Build a route." : activeNavItem.label}</h2></div><p>{isOverview ? <>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</> : <>Focused interface for <strong>{country.name}</strong>. Change country above, then generate a fresh working set.</>}</p></div>
