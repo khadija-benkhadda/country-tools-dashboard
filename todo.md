@@ -244,6 +244,13 @@
 
 ## Push Content type multi-select
 
-- [ ] Verify the local branch and GitHub remote.
-- [ ] Commit the multi-select update.
-- [ ] Push `main` and confirm the remote commit.
+- [x] Verify the local branch and GitHub remote.
+- [x] Commit the multi-select update.
+- [x] Push `main` and confirm the remote commit.
+
+## Global duplicate prevention
+
+- [x] Audit the visible and exported value for every generator.
+- [x] Guarantee unique cleaned results at 1,000, 2,000, 5,000, and 10,000 rows.
+- [x] Keep Gmail subject/message pairs unique while preserving row links.
+- [x] Validate all routes and save the no-duplicates version.

@@ -58,6 +58,9 @@ const navItems = [
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
 const resultCountOptions = ["1,000", "2,000", "5,000", "10,000"];
 const parseResultCount = (value: string) => Number(value.replaceAll(",", ""));
+const trendDistinctifiers = ["ideas", "guide", "tips", "planning", "updates", "options", "resources", "prices", "benefits", "comparison", "basics", "checklist", "examples", "services", "schedule", "information", "support", "online", "local", "today", "new", "best", "simple", "public", "free", "advanced", "nearby", "learning", "community", "seasonal", "practical", "official", "quick", "smart", "daily", "weekly", "popular", "current", "trusted", "useful", "beginner", "professional", "home", "work", "family", "student", "business", "travel", "health", "digital", "modern"];
+const replyDistinctifiers = ["when convenient", "for your records", "as discussed", "with thanks", "for the next step", "at your convenience", "for a quick review", "as a small update", "for today", "for this week", "with appreciation", "for your reference", "before we continue", "when you have time", "for the follow-up", "as planned", "with a clear note", "for the record", "in the meantime", "for the next update"];
+const normalizeResult = (value: string) => value.trim().toLocaleLowerCase();
 const formatCount = (value: number) => value.toLocaleString("en-US");
 
 function copyToClipboard(text: string, label = "Copied to clipboard") {
@@ -324,20 +327,46 @@ export default function Home() {
   const [replyCount, setReplyCount] = useState("1,000");
   const [generatedReplies, setGeneratedReplies] = useState<string[]>([]);
 
-  const generateAcrossCountries = <T,>(total: number, generator: (profile: CountryProfile, count: number) => T[]) => {
-    const base = Math.floor(total / selectedCountries.length);
-    const remainder = total % selectedCountries.length;
-    return selectedCountries.flatMap((profile, index) => generator(profile, base + (index < remainder ? 1 : 0))).slice(0, total);
+  const generateAcrossCountries = <T,>(total: number, generator: (profile: CountryProfile, count: number) => T[], profiles = selectedCountries) => {
+    const base = Math.floor(total / profiles.length);
+    const remainder = total % profiles.length;
+    return profiles.flatMap((profile, index) => generator(profile, base + (index < remainder ? 1 : 0))).slice(0, total);
+  };
+
+  const generateUniqueAcrossCountries = <T,>(total: number, generator: (profile: CountryProfile, count: number) => T[], key: (row: T) => string, profiles = selectedCountries) => {
+    const unique: T[] = [];
+    const seen = new Set<string>();
+    let attempt = 0;
+    while (unique.length < total && attempt < 10) {
+      const batch = generateAcrossCountries(total, generator, profiles);
+      batch.forEach((row) => {
+        const normalized = normalizeResult(key(row));
+        if (!seen.has(normalized) && unique.length < total) {
+          seen.add(normalized);
+          unique.push(row);
+        }
+      });
+      attempt += 1;
+    }
+    return unique.slice(0, total);
   };
 
   const generateTrendsAcrossSelections = (total: number) => {
     const generated = generateAcrossCountries(total, (profile, count) => generateTrendIdeas(profile, trendCategory, count));
     const seen = new Set<string>();
-    return generated.filter((trend) => {
-      const key = trend.keyword.trim().toLocaleLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+    return generated.map((trend, index) => {
+      const baseKeyword = trend.keyword.trim();
+      let keyword = baseKeyword;
+      let variantIndex = 0;
+      while (seen.has(normalizeResult(keyword))) {
+        const first = trendDistinctifiers[variantIndex % trendDistinctifiers.length];
+        const second = trendDistinctifiers[Math.floor(variantIndex / trendDistinctifiers.length) % trendDistinctifiers.length];
+        const third = trendDistinctifiers[Math.floor(variantIndex / (trendDistinctifiers.length * trendDistinctifiers.length)) % trendDistinctifiers.length];
+        keyword = `${baseKeyword} ${first} ${second} ${third}`;
+        variantIndex += 1;
+      }
+      seen.add(normalizeResult(keyword));
+      return keyword === trend.keyword ? trend : { ...trend, keyword, searchQuery: keyword, id: `${trend.id}-${index}` };
     }).slice(0, total);
   };
 
@@ -354,9 +383,28 @@ export default function Home() {
         const typeTotal = perType + (typeIndex < typeRemainder ? 1 : 0);
         const perLanguage = Math.floor(typeTotal / languages.length);
         const languageRemainder = typeTotal % languages.length;
-        return languages.flatMap((language, languageIndex) => generatePdfQueries(topic, profile, contentType, language, perLanguage + (languageIndex < languageRemainder ? 1 : 0)));
+        return languages.flatMap((language, languageIndex) => generatePdfQueries(topic, profile, contentType, language, perLanguage + (languageIndex < languageRemainder ? 1 : 0), (countryIndex * contentTypes.length * languages.length + typeIndex * languages.length + languageIndex) * 100));
       });
     }).slice(0, total);
+  };
+
+  const generateUniqueDocuments = (total: number, profiles = selectedCountries) => {
+    const unique: DocumentQuery[] = [];
+    const seen = new Set<string>();
+    let attempt = 0;
+    while (unique.length < total && attempt < 10) {
+      const batch = generateDocumentsAcrossSelections(total, profiles);
+      batch.forEach((document) => {
+        const cleanQuery = stripDocumentSequence(document.query);
+        const normalized = normalizeResult(cleanQuery);
+        if (!seen.has(normalized) && unique.length < total) {
+          seen.add(normalized);
+          unique.push(document);
+        }
+      });
+      attempt += 1;
+    }
+    return unique.slice(0, total);
   };
 
   useEffect(() => {
@@ -367,9 +415,9 @@ export default function Home() {
     localStorage.setItem("country-tools-country", country.code);
     localStorage.setItem("country-tools-countries", JSON.stringify(selectedCountries.map((profile) => profile.code)));
     setTrends(generateTrendsAcrossSelections(parseResultCount(trendCount)));
-    setAddresses(generateAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count)));
-    setPlaces(generateAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count)));
-    setDocuments(generateDocumentsAcrossSelections(parseResultCount(documentCount)));
+    setAddresses(generateUniqueAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count), (address) => cleanAddressResult(address, address.country)));
+    setPlaces(generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => cleanPlaceResult(place, place.country)));
+    setDocuments(generateUniqueDocuments(parseResultCount(documentCount)));
     setLastAction(`${selectedCountries.length} countr${selectedCountries.length === 1 ? "y" : "ies"} context loaded`);
   }, [selectedCountries, selectedDocumentTypes, selectedDocumentLanguages]);
 
@@ -395,19 +443,19 @@ export default function Home() {
   };
 
   const generateAddressesNow = () => {
-    setAddresses(generateAddresses(country, parseResultCount(addressCount)));
+    setAddresses(generateUniqueAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count), (address) => cleanAddressResult(address, address.country)));
     setLastAction("Synthetic addresses randomized");
     toast.success("Address set refreshed");
   };
 
   const generatePlacesNow = () => {
-    setPlaces(generateMapQueries(country, placeType, parseResultCount(placeCount)));
+    setPlaces(generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => cleanPlaceResult(place, place.country)));
     setLastAction("Map queries randomized");
     toast.success("Places set refreshed");
   };
 
   const generateDocumentsNow = () => {
-    setDocuments(generateDocumentsAcrossSelections(parseResultCount(documentCount)));
+    setDocuments(generateUniqueDocuments(parseResultCount(documentCount)));
     setLastAction("Open-access search queries generated");
     toast.success("Search ideas refreshed");
   };
@@ -444,7 +492,23 @@ export default function Home() {
     const uniquePool = Array.from(new Set(pool));
     const count = parseResultCount(replyCount);
     const shuffled = uniquePool.sort(() => Math.random() - 0.5);
-    const nextReplies = Array.from({ length: count }, (_, index) => shuffled[index % shuffled.length] + (index >= shuffled.length ? ` — ${index + 1}` : ""));
+    const seen = new Set<string>();
+    const nextReplies: string[] = [];
+    Array.from({ length: count }, (_, index) => shuffled[index % shuffled.length]).forEach((baseReply, index) => {
+      const normalizedBase = normalizeResult(baseReply);
+      let reply = baseReply;
+      let variantIndex = 0;
+      while (seen.has(normalizeResult(reply))) {
+        const first = replyDistinctifiers[(index + variantIndex) % replyDistinctifiers.length];
+        const second = replyDistinctifiers[Math.floor((index + variantIndex) / replyDistinctifiers.length) % replyDistinctifiers.length];
+        const cleanReply = baseReply.replace(/[.!?]+\s*$/, "");
+        reply = `${cleanReply}. ${first}, ${second}.`;
+        variantIndex += 1;
+      }
+      if (seen.has(normalizedBase)) reply = `${baseReply.replace(/[.!?]+\s*$/, "")}. ${replyDistinctifiers[index % replyDistinctifiers.length]}.`;
+      seen.add(normalizeResult(reply));
+      nextReplies.push(reply);
+    });
     setGeneratedReplies(nextReplies);
     setLastAction(`${count.toLocaleString()} unique short replies generated`);
     toast.success(`${count.toLocaleString()} unique replies ready`);
@@ -466,9 +530,9 @@ export default function Home() {
     const nextCountry = otherCountries[Math.floor(Math.random() * otherCountries.length)];
     setSelectedCountries([nextCountry]);
     const nextTrends = generateTrendIdeas(nextCountry, trendCategory, parseResultCount(trendCount));
-    const nextAddresses = generateAddresses(nextCountry, parseResultCount(addressCount));
-    const nextPlaces = generateMapQueries(nextCountry, placeType, parseResultCount(placeCount));
-    const nextDocuments = generateDocumentsAcrossSelections(parseResultCount(documentCount), [nextCountry]);
+    const nextAddresses = generateUniqueAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count), (address) => cleanAddressResult(address, address.country), [nextCountry]);
+    const nextPlaces = generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => cleanPlaceResult(place, place.country), [nextCountry]);
+    const nextDocuments = generateUniqueDocuments(parseResultCount(documentCount), [nextCountry]);
     setTrends(nextTrends);
     setAddresses(nextAddresses);
     setPlaces(nextPlaces);
