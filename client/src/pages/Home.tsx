@@ -4,11 +4,9 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Badge } from "@/components/ui/badge";
-import ResultsWorkspace from "@/components/ResultsWorkspace";
 import {
   BookOpen,
   Check,
-  FileSpreadsheet,
   ChevronDown,
   Clipboard,
   ExternalLink,
@@ -28,7 +26,6 @@ import {
   X,
 } from "lucide-react";
 import { countryProfiles, defaultCountry, findCountry, type CountryProfile } from "@/lib/countryData";
-import { exportRows, filterRows, formatRowsForExport, parseUploadedFile, randomizeRows, type ExportFormat, type ImportedDataset, type ResultRow } from "@/lib/resultIO";
 import {
   defaultToolCounts,
   documentTypeOptions,
@@ -52,7 +49,6 @@ const navItems = [
   { id: "addresses", href: "/addresses", label: "Address Generator", icon: MapPin },
   { id: "places", href: "/places", label: "Places Explorer", icon: Map },
   { id: "documents", href: "/documents", label: "PDF & Book Finder", icon: BookOpen },
-  { id: "results", href: "/results", label: "Upload Results", icon: FileSpreadsheet },
 ];
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -183,7 +179,6 @@ export default function Home() {
   const [documentCount, setDocumentCount] = useState("1,000");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
-  const [importedDataset, setImportedDataset] = useState<ImportedDataset | null>(null);
 
   useEffect(() => {
     localStorage.setItem("country-tools-country", country.code);
@@ -285,8 +280,6 @@ export default function Home() {
           </section>
 
           <div className="workspace-intro"><div><span className="eyebrow">{isOverview ? "01 / TOOLKIT" : `${String(navItems.findIndex((item) => item.id === activeTool) + 1).padStart(2, "0")} / INTERFACE`}</span><h2>{isOverview ? "Pick a signal. Build a route." : activeNavItem.label}</h2></div><p>{isOverview ? <>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</> : <>Focused interface for <strong>{country.name}</strong>. Change country above, then generate a fresh working set.</>}</p></div>
-
-          {activeTool === "results" && <ResultsWorkspace dataset={importedDataset} onDatasetChange={setImportedDataset} />}
 
           <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">

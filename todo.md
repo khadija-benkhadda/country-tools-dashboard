@@ -59,3 +59,9 @@
 - [x] Generate one random book title plus `pdf` per result, with at least 1,000 rows.
 - [x] Remove the Dashboard navigation item and route, using a dedicated tool as the default entry.
 - [x] Validate the remaining routes and save a new checkpoint.
+
+## Remove Upload Results
+
+- [x] Remove Upload Results from the sidebar navigation.
+- [x] Remove the `/results` route and related active-tool behavior.
+- [x] Validate the remaining Trends, Address, Places, and PDF/Book routes.
