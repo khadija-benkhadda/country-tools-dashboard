@@ -153,3 +153,10 @@
 - [x] Copy only the keyword text in Copy all results.
 - [x] Keep filters, category, result count, and randomization working.
 - [x] Validate Trends Explorer and save a new checkpoint.
+
+## Unique weekly trends across tools
+
+- [x] Audit all generators for repeated values at 1,000+ rows.
+- [x] Guarantee unique displayed and copied results in Addresses, Places, PDF/Book, Replies, and Gmail pairs.
+- [x] Add weekly trend labels and distinct trend words for searchable weekly sets.
+- [x] Validate large-volume uniqueness and save a new checkpoint.

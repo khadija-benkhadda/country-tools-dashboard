@@ -58,6 +58,7 @@ const cx = (...classes: Array<string | false | null | undefined>) => classes.fil
 const resultCountOptions = ["1,000", "2,000", "5,000", "10,000"];
 const parseResultCount = (value: string) => Number(value.replaceAll(",", ""));
 const formatCount = (value: number) => value.toLocaleString("en-US");
+const trendWeekOptions = ["All", ...Array.from({ length: 52 }, (_, index) => `Week ${String(index + 1).padStart(2, "0")}`)];
 
 function copyToClipboard(text: string, label = "Copied to clipboard") {
   if (navigator.clipboard) {
@@ -211,6 +212,7 @@ export default function Home() {
   const [, setLastAction] = useState("Country context loaded");
 
   const [trendCategory, setTrendCategory] = useState("All");
+  const [trendWeek, setTrendWeek] = useState("All");
   const [trendCount, setTrendCount] = useState("1,000");
   const [trendFilter, setTrendFilter] = useState("");
   const [trends, setTrends] = useState<TrendIdea[]>(() => generateTrendIdeas(defaultCountry, "All", defaultToolCounts.trends));
@@ -291,7 +293,7 @@ export default function Home() {
     localStorage.setItem("country-tools-document-languages", JSON.stringify(selectedDocumentLanguages));
   }, [selectedDocumentLanguages]);
 
-  const filteredTrends = useMemo(() => trends.filter((trend) => trend.keyword.toLowerCase().includes(trendFilter.toLowerCase()) || trend.category.toLowerCase().includes(trendFilter.toLowerCase())), [trends, trendFilter]);
+  const filteredTrends = useMemo(() => trends.filter((trend) => (trendWeek === "All" || trend.week === trendWeek) && (trend.keyword.toLowerCase().includes(trendFilter.toLowerCase()) || trend.category.toLowerCase().includes(trendFilter.toLowerCase()))), [trends, trendFilter, trendWeek]);
   const trendPreview = filteredTrends.slice(0, 24);
   const addressPreview = addresses.slice(0, 24);
   const placePreview = places.slice(0, 24);
@@ -448,10 +450,10 @@ export default function Home() {
 
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">
               <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Create country-aware keyword angles to validate in Google Trends." icon={Flame} note="DEMO DATA / NO LIVE API" />
-              <div className="tool-controls"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={resultCountOptions} /><label className="field-control search-control"><span>Filter results</span><span className="input-wrap"><Search size={15} /><input value={trendFilter} onChange={(event) => setTrendFilter(event.target.value)} placeholder="Search this set" /></span></label><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyAllResults(trends, (trend) => trend.keyword, "trend results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
+              <div className="tool-controls"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Week" value={trendWeek} onChange={setTrendWeek} options={trendWeekOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={resultCountOptions} /><label className="field-control search-control"><span>Filter results</span><span className="input-wrap"><Search size={15} /><input value={trendFilter} onChange={(event) => setTrendFilter(event.target.value)} placeholder="Search this set" /></span></label><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyAllResults(trends, (trend) => trend.keyword, "trend results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
               <div className="notice-banner"><Lightbulb size={16} /><span><strong>Generated trend ideas</strong> — randomized country examples, not real-time Google Trends data. Use the links below to validate live interest.</span></div>
               {filteredTrends.length === 0 && <EmptyState text="No trend ideas match this filter. Try a broader phrase or generate a new set." />}
-              {filteredTrends.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Signal</span><span>Actions</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><strong>{trend.keyword}</strong></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><div className="signal-score"><span className="score-bar"><i style={{ width: `${trend.score}%` }} /></span><small>{trend.trendType}</small></div></div>)}</div>}
+              {filteredTrends.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Week</span><span>Category</span><span>Signal</span><span>Actions</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><strong>{trend.keyword}</strong></div><span className="trend-week">{trend.week}</span><Badge variant="outline" className="soft-badge">{trend.category}</Badge><div className="signal-score"><span className="score-bar"><i style={{ width: `${trend.score}%` }} /></span><small>{trend.trendType}</small></div></div>)}</div>}
               {filteredTrends.length > trendPreview.length && <div className="preview-note">Previewing {trendPreview.length.toLocaleString()} of {filteredTrends.length.toLocaleString()} generated ideas. The full collection stays in memory for filtering and export.</div>}
             </ToolCard>}
 

@@ -8,6 +8,7 @@ export type TrendIdea = {
   trendType: string;
   searchQuery: string;
   score: number;
+  week: string;
 };
 
 export type SyntheticAddress = {
@@ -109,15 +110,19 @@ export const generateTrendIdeas = (country: CountryProfile, category: string, co
   const available = country.trendIdeas[category] ?? country.trendIdeas.All;
   const randomizedIdeas = shuffle(available);
   return Array.from({ length: count }, (_, index) => {
-    const keyword = randomizedIdeas[index % randomizedIdeas.length];
+    const baseKeyword = randomizedIdeas[index % randomizedIdeas.length];
+    const weekNumber = (index % 52) + 1;
+    const cycle = Math.floor(index / 52) + 1;
+    const keyword = `${baseKeyword} ${String(weekNumber).padStart(2, "0")}-${cycle}`;
     const city = country.cities[index % country.cities.length];
     return {
       id: createId("trend", index),
       keyword,
       category,
       trendType: pick(trendTypes),
-      searchQuery: `${keyword} ${city}, ${country.name}`,
+      searchQuery: `${baseKeyword} ${city}, ${country.name}`,
       score: randomInt(64, 98),
+      week: `Week ${String(weekNumber).padStart(2, "0")}`,
     };
   });
 };
@@ -151,7 +156,10 @@ export const generateRandomAddress = (country: CountryProfile, index = 0): Synth
   };
 };
 
-export const generateAddresses = (country: CountryProfile, count: number) => Array.from({ length: count }, (_, index) => generateRandomAddress(country, index));
+export const generateAddresses = (country: CountryProfile, count: number) => Array.from({ length: count }, (_, index) => {
+  const address = generateRandomAddress(country, index);
+  return { ...address, formatted: `${address.formatted} · Unit ${String(index + 1).padStart(4, "0")}` };
+});
 
 export const generateMapQueries = (country: CountryProfile, placeType: string, count: number): PlaceQuery[] => {
   const types = placeType === "Random" ? Array.from({ length: count }, (_, index) => placeTypes[index % placeTypes.length]) : Array.from({ length: count }, () => placeType);
@@ -166,7 +174,7 @@ export const generateMapQueries = (country: CountryProfile, placeType: string, c
       city,
       region,
       country: country.name,
-      query: `${type}s in ${city}, ${country.name}`,
+      query: `${type}s in ${city}, ${country.name} · zone ${String(index + 1).padStart(4, "0")}`,
     };
   });
 };
@@ -267,7 +275,7 @@ export const generatePdfQueries = (topic: string, country: CountryProfile, conte
   const titles = shuffle([...publicBookTitles]);
   return Array.from({ length: count }, (_, index) => {
     const title = titles[index % titles.length];
-    const query = `${title} pdf`;
+    const query = `${title} pdf ${String(index + 1).padStart(4, "0")}`;
     return {
       id: createId("document", index),
       query,

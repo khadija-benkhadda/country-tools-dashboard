@@ -225,7 +225,7 @@
 .notice-banner--safe { background: color-mix(in srgb, var(--teal-soft) 62%, var(--card)); }
 .notice-banner--safe svg { color: var(--teal); }
 .result-table { padding: 0 27px 25px; }
-.table-head, .table-row { display: grid; grid-template-columns: 38px minmax(210px, 1.8fr) 120px minmax(130px, .8fr) minmax(260px, 1.35fr); gap: 13px; align-items: center; }
+.table-head, .table-row { display: grid; grid-template-columns: 38px minmax(210px, 1.8fr) 100px 90px minmax(130px, .8fr) minmax(150px, 1.1fr); gap: 13px; align-items: center; }
 .table-head { min-height: 33px; border-bottom: 1px solid var(--line); color: var(--muted-foreground); font-size: 9px; }
 .table-row { min-height: 66px; border-bottom: 1px solid var(--line); font-size: 12px; }
 .table-row:last-child { border-bottom: 0; }
