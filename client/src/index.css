@@ -680,3 +680,19 @@
   .email-pair-list { max-height: 28rem; }
   .email-pair-row { grid-template-columns: 2.7rem 1fr; gap: 0.7rem; padding-inline: 1rem; }
 }
+
+/* Separate Gmail copy zones: subjects and messages remain independently selectable while paired export stays available. */
+.email-copy-group {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.email-copy-group > span {
+  color: var(--muted-foreground);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.email-copy-group .secondary-button { white-space: nowrap; }

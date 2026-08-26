@@ -115,3 +115,9 @@
 - [x] Preserve one-to-one pairing by shared row ID and line number.
 - [x] Add 1,000+ volume controls and separate copy actions for subjects, messages, and paired rows.
 - [x] Add a dedicated route and validate the responsive layout.
+
+## Separate Gmail copy actions
+
+- [x] Add Copy all subjects using the generated row order.
+- [x] Add Copy all messages using the same generated row order.
+- [x] Keep paired copy available and validate all three copy formats.
