@@ -221,3 +221,10 @@
 - [x] Remove technical numeric suffixes from displayed, copied, and downloaded PDF/Book results.
 - [x] Validate random unique titles at 1,000+ results and run the build.
 - [x] Save and deliver the correction.
+
+## Clean copied result content
+
+- [x] Audit every copy/download formatter across Trends, Addresses, Places, PDF & Book, Replies, and Gmail.
+- [x] Keep only the user-facing result in copied content, without countries, counts, units, zones, labels, or technical suffixes.
+- [x] Apply the same line-by-line clean format to downloads.
+- [x] Validate every route and save the update.
