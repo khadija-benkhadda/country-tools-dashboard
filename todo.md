@@ -214,3 +214,10 @@
 - [x] Remove counts and units from all copy confirmations.
 - [x] Add a download-results button to Trends, Addresses, Places, PDF & Book, Replies, and Gmail.
 - [x] Validate line formatting, file downloads, responsive layout, and build.
+
+## PDF and Book result suffix cleanup
+
+- [x] Audit the generated PDF/Book query suffix and its copy/download format.
+- [x] Remove technical numeric suffixes from displayed, copied, and downloaded PDF/Book results.
+- [x] Validate random unique titles at 1,000+ results and run the build.
+- [x] Save and deliver the correction.

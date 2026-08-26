@@ -73,6 +73,10 @@ function stripCountrySuffix(value: string, countryName: string) {
   return value.replace(new RegExp(`\\s*,?\\s*${escapedCountry}\\s*$`, "i"), "").trim();
 }
 
+function stripDocumentSequence(value: string) {
+  return value.replace(/\s+\d+\s*$/, "").trim();
+}
+
 function copyAllResults<T>(rows: T[], formatter: (row: T) => string, countryName: string) {
   copyToClipboard(rows.map((row) => stripCountrySuffix(formatter(row), countryName)).join("\n"), "Copied");
 }
@@ -488,9 +492,9 @@ export default function Home() {
 
             {(isOverview || activeTool === "documents") && <ToolCard id="documents" className="tool-card--documents">
               <SectionIntro index="04" eyebrow="Open access route" title="PDF & Book Finder" description="Create short public-document queries in the format: book name + pdf." icon={BookOpen} note="LEGAL DISCOVERY" />
-              <div className="tool-controls tool-controls--document"><SelectControl label="Content type" value={documentType} onChange={setDocumentType} options={documentTypeOptions} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><MultiLanguageSelect selectedLanguages={selectedDocumentLanguages} onChange={setSelectedDocumentLanguages} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={resultCountOptions} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button><button className="secondary-button" onClick={() => copyAllResults(documents, (document) => document.query, country.name)} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(documents.map((document) => document.query).join("\n"), "pdf-book-results.txt")} disabled={!documents.length} type="button"><Download size={15} /> Download results</button></div>
+              <div className="tool-controls tool-controls--document"><SelectControl label="Content type" value={documentType} onChange={setDocumentType} options={documentTypeOptions} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><MultiLanguageSelect selectedLanguages={selectedDocumentLanguages} onChange={setSelectedDocumentLanguages} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={resultCountOptions} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button><button className="secondary-button" onClick={() => copyAllResults(documents, (document) => stripDocumentSequence(document.query), country.name)} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(documents.map((document) => stripDocumentSequence(document.query)).join("\n"), "pdf-book-results.txt")} disabled={!documents.length} type="button"><Download size={15} /> Download results</button></div>
               <div className="notice-banner notice-banner--safe"><BookOpen size={16} /><span><strong>Publicly available material only.</strong> These queries do not bypass paywalls, DRM, copyright restrictions, or access controls.</span></div>
-              <div className="document-list">{documentPreview.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{document.query}</strong></div></article>)}</div><div className="preview-note">Previewing {documentPreview.length.toLocaleString()} of {documents.length.toLocaleString()} generated document queries. The full collection stays in memory.</div>
+              <div className="document-list">{documentPreview.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{stripDocumentSequence(document.query)}</strong></div></article>)}</div><div className="preview-note">Previewing {documentPreview.length.toLocaleString()} of {documents.length.toLocaleString()} generated document queries. The full collection stays in memory.</div>
             </ToolCard>}
           </div>
 
