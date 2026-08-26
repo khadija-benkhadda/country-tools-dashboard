@@ -121,3 +121,9 @@
 - [x] Add Copy all subjects using the generated row order.
 - [x] Add Copy all messages using the same generated row order.
 - [x] Keep paired copy available and validate all three copy formats.
+
+## Remove paired Gmail copy
+
+- [x] Remove the Copy paired results button from the Gmail interface.
+- [x] Keep Copy all subjects and Copy all messages with matching row order.
+- [x] Validate the simplified controls and save a new checkpoint.
