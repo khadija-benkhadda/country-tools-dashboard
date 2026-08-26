@@ -245,19 +245,38 @@ export default function Home() {
     toast.success("Search ideas refreshed");
   };
 
-  const replyOptions: Record<string, string[]> = {
-    Simple: ["Thanks for your message.", "Thanks for your help.", "Thanks for everything.", "I appreciate it.", "Got it, thank you.", "That sounds good, thanks."],
-    Polite: ["Thank you very much. I appreciate it.", "Thank you for your message.", "Many thanks for your help.", "I appreciate your time and support.", "Thank you. I’ll follow up shortly."],
-    Casual: ["Thanks for everything!", "Thanks a lot!", "Got it, thanks!", "Really appreciate it!", "Sounds good, thank you!"],
+  const replyParts: Record<string, { openers: string[]; middles: string[]; closers: string[] }> = {
+    Simple: {
+      openers: ["Thanks for your message", "Thanks for your help", "Thanks for the update", "Thanks for sharing", "I appreciate your message", "I appreciate your help", "Got it", "That sounds good", "Noted with thanks", "I understand"],
+      middles: ["I appreciate it", "I’ve noted this", "That helps a lot", "I’ll keep this in mind", "This is helpful", "I understand", "Sounds good to me", "I’ll take care of it", "I’ll review it", "I’m on it"],
+      closers: ["Thanks again.", "Got it.", "Much appreciated.", "All noted.", "Talk soon.", "I’ll follow up.", "That works.", "I’ll get back to you.", "Appreciate your help.", "Thank you."],
+    },
+    Polite: {
+      openers: ["Thank you very much", "Thank you for your message", "Many thanks for your help", "I sincerely appreciate your message", "Thank you for the update", "I appreciate your time", "Thank you for sharing this", "Please accept my thanks", "I’m grateful for your help", "Thank you for reaching out"],
+      middles: ["I appreciate your support", "I’ll review this carefully", "I’ll keep this in mind", "I’ll look into it", "I’ll follow up shortly", "I’ll take the next steps", "This is very helpful", "I understand your point", "I’m happy to help", "I’ll respond soon"],
+      closers: ["Thank you again.", "I appreciate it.", "With thanks.", "Please let me know.", "I’ll be in touch.", "That would be appreciated.", "Many thanks.", "I look forward to it.", "Thank you for your time.", "Kind regards."],
+    },
+    Casual: {
+      openers: ["Thanks a lot", "Thanks for everything", "Really appreciate it", "Got it", "Sounds good", "Thanks for the heads-up", "Awesome, thanks", "That works", "Perfect, thanks", "Appreciate you"],
+      middles: ["I’m on it", "I’ll take a look", "I’ve got it", "That helps", "I’ll keep you posted", "I’ll get back to you", "I’m happy to help", "Good to know", "I’ll sort it out", "Let’s do it"],
+      closers: ["Thanks!", "Got it!", "Talk soon!", "Appreciate it!", "Sounds good!", "All set!", "Catch you later!", "No problem!", "Thank you!", "Will do!"],
+    },
   };
 
   const generateReplyNow = () => {
-    const options = replyOptions[replyTone] ?? replyOptions.Simple;
+    const parts = replyParts[replyTone] ?? replyParts.Simple;
+    const pool = Array.from({ length: parts.openers.length * parts.middles.length * parts.closers.length }, (_, index) => {
+      const opener = parts.openers[Math.floor(index / (parts.middles.length * parts.closers.length)) % parts.openers.length];
+      const middle = parts.middles[Math.floor(index / parts.closers.length) % parts.middles.length];
+      const closer = parts.closers[index % parts.closers.length];
+      return `${opener}. ${middle}. ${closer}`;
+    });
     const count = parseResultCount(replyCount);
-    const nextReplies = Array.from({ length: count }, (_, index) => options[(Math.floor(Math.random() * options.length) + index) % options.length]);
+    const shuffled = pool.sort(() => Math.random() - 0.5);
+    const nextReplies = Array.from({ length: count }, (_, index) => shuffled[index % shuffled.length] + (index >= shuffled.length ? ` — ${index + 1}` : ""));
     setGeneratedReplies(nextReplies);
-    setLastAction(`${count.toLocaleString()} short replies generated`);
-    toast.success(`${count.toLocaleString()} replies ready`);
+    setLastAction(`${count.toLocaleString()} unique short replies generated`);
+    toast.success(`${count.toLocaleString()} unique replies ready`);
   };
 
   const clearReply = () => {

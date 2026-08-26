@@ -96,3 +96,9 @@
 - [x] Add result-count options starting at 1,000 for Reply Generator.
 - [x] Generate and display multiple short replies in a scrollable result list.
 - [x] Add Copy all replies and validate the 1,000-result flow.
+
+## Unique short replies
+
+- [x] Build unique reply variants from the selected tone.
+- [x] Guarantee no duplicate strings in each generated collection.
+- [x] Validate uniqueness at 1,000 results and save a new checkpoint.
