@@ -207,3 +207,10 @@
 - [x] Add a visible Copy all results button to Trends Explorer.
 - [x] Copy one keyword per line without country names or metadata.
 - [x] Validate the interaction, build, and responsive layout.
+
+## Copy and download cleanup
+
+- [x] Audit copy confirmation labels and existing export helpers across all tools.
+- [x] Remove counts and units from all copy confirmations.
+- [x] Add a download-results button to Trends, Addresses, Places, PDF & Book, Replies, and Gmail.
+- [x] Validate line formatting, file downloads, responsive layout, and build.

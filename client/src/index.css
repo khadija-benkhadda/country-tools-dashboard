@@ -205,7 +205,7 @@
 .tool-controls { display: grid; grid-template-columns: 1fr 1fr minmax(180px, 1.7fr) auto; gap: 12px; align-items: end; padding: 18px 27px; background: color-mix(in srgb, var(--background) 42%, var(--card)); }
 .tool-controls--two { grid-template-columns: 1fr auto; }
 .tool-controls--three { grid-template-columns: 1.2fr .7fr auto; }
-.tool-controls--trends { grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto auto; }
+.tool-controls--trends { grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto auto auto; }
 .tool-controls--document { grid-template-columns: 1.2fr 1.45fr 1fr .8fr auto; }
 .field-control { display: block; min-width: 0; }
 .field-control > span:first-child { display: block; margin-bottom: 7px; color: var(--muted-foreground); font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
