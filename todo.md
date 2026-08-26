@@ -127,3 +127,9 @@
 - [x] Remove the Copy paired results button from the Gmail interface.
 - [x] Keep Copy all subjects and Copy all messages with matching row order.
 - [x] Validate the simplified controls and save a new checkpoint.
+
+## Remove decorative interface text
+
+- [x] Remove non-functional breadcrumb, status, context, and explanatory copy from the shared shell.
+- [x] Remove decorative numbers, eyebrows, notes, and long descriptions from tool cards while keeping functional labels.
+- [x] Rebalance spacing after text removal and validate all routes on desktop/mobile.

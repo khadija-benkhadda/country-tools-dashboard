@@ -696,3 +696,22 @@
 }
 
 .email-copy-group .secondary-button { white-space: nowrap; }
+
+/* Minimal shell: functional controls stay visible while decorative copy is intentionally removed. */
+.section-intro--minimal {
+  display: block;
+  padding: 1.1rem 1.35rem;
+}
+
+.section-intro--minimal h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+}
+
+.workspace-toolbar:has(.country-multi-select) {
+  justify-content: flex-end;
+}
+
+@media (max-width: 680px) {
+  .workspace-toolbar:has(.country-multi-select) { justify-content: stretch; }
+}

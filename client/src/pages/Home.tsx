@@ -156,18 +156,8 @@ function MultiToneSelect({ selectedTones, onChange }: { selectedTones: string[];
   );
 }
 
-function SectionIntro({ index, eyebrow, title, description, icon: Icon, note }: { index: string; eyebrow: string; title: string; description: string; icon: typeof Flame; note?: string }) {
-  return (
-    <div className="section-intro">
-      <div className="section-intro__index">{index}</div>
-      <div className="section-intro__copy">
-        <div className="eyebrow-line"><Icon size={14} /> {eyebrow}</div>
-        <h2>{title}</h2>
-        <p>{description}</p>
-      </div>
-      {note && <div className="section-intro__note">{note}</div>}
-    </div>
-  );
+function SectionIntro({ title }: { title: string; index?: string; eyebrow?: string; description?: string; icon?: typeof Flame; note?: string }) {
+  return <div className="section-intro section-intro--minimal"><h2>{title}</h2></div>;
 }
 
 function ToolCard({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
@@ -198,7 +188,7 @@ export default function Home() {
   const activeTool = activeNavItem.id;
   const isOverview = activeTool === "overview";
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [lastAction, setLastAction] = useState("Ready for a new set");
+  const [, setLastAction] = useState("Country context loaded");
 
   const [trendCategory, setTrendCategory] = useState("All");
   const [trendCount, setTrendCount] = useState("1,000");
@@ -379,21 +369,17 @@ export default function Home() {
 
       <main className="main-content">
         <header className="topbar">
-          <div className="topbar__left"><button className="mobile-menu" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={19} /></button><span className="topbar-breadcrumb">RESEARCH DESK <span>/</span> COUNTRY TOOLS</span></div>
+          <div className="topbar__left"><button className="mobile-menu" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={19} /></button></div>
           <div className="topbar__right">
-            <span className="last-action"><span className="status-dot" /> {lastAction}</span>
             <button className="icon-button" onClick={toggleTheme} type="button" aria-label="Toggle dark mode">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
             <button className="randomize-button" onClick={randomizeEverything} type="button"><RefreshCw size={15} /> <span>Randomize all</span></button>
           </div>
         </header>
 
         <div className="workspace">
-          <section className="workspace-toolbar" aria-label="Current workspace">
-            <div className="workspace-toolbar__identity"><span className="eyebrow">Selected country</span><strong>{country.name}</strong><span className="workspace-toolbar__region">{country.code} · {country.region}</span></div>
+          <section className="workspace-toolbar" aria-label="Research countries">
             <MultiCountrySelect selectedCountries={selectedCountries} onChange={setSelectedCountries} />
           </section>
-
-          <div className="workspace-intro"><div><span className="eyebrow">{isOverview ? "01 / TOOLKIT" : `${String(navItems.findIndex((item) => item.id === activeTool) + 1).padStart(2, "0")} / INTERFACE`}</span><h2>{isOverview ? "Pick a signal. Build a route." : activeNavItem.label}</h2></div><p>{isOverview ? <>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</> : <>Focused interface for <strong>{country.name}</strong>. Change country above, then generate a fresh working set.</>}</p></div>
 
           <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
             {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
