@@ -179,3 +179,10 @@
 - [x] Verify the target repository and local Git status; the provided URL currently returns 404 and the Git endpoint returns 403.
 - [x] Prepare a clean commit containing the current Country Tools project (commit `4bcf4f9`).
 - [ ] Push the commit to the requested GitHub repository and confirm the branch and commit.
+
+## Direct GitHub account push
+
+- [ ] Verify the GitHub account and whether `country-tools-dashboard` is available.
+- [ ] Prepare the current local main branch and commit state.
+- [ ] Create or select the new repository and push the project.
+- [ ] Confirm the final GitHub URL and remote branch.
