@@ -182,7 +182,7 @@
 
 ## Direct GitHub account push
 
-- [ ] Verify the GitHub account and whether `country-tools-dashboard` is available.
-- [ ] Prepare the current local main branch and commit state.
-- [ ] Create or select the new repository and push the project.
-- [ ] Confirm the final GitHub URL and remote branch.
+- [x] Verify the GitHub account and whether `country-tools-dashboard` is available.
+- [x] Prepare the current local main branch and commit state.
+- [x] Create or select the new repository and push the project.
+- [x] Confirm the final GitHub URL and remote branch.
