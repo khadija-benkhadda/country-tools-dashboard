@@ -139,3 +139,10 @@
 - [x] Replace the single language select with a multi-language control.
 - [x] Preserve an Any option and generate across all selected languages.
 - [x] Validate the language summary, results, and mobile layout.
+
+## Hide country bar on selected tools
+
+- [x] Hide Research countries from Gmail Subject + Message Generator.
+- [x] Hide Research countries from Short Reply Generator and PDF & Book Finder.
+- [x] Keep country selection visible on Trends, Address, and Places.
+- [x] Validate all affected routes and save a new checkpoint.

@@ -424,9 +424,9 @@ export default function Home() {
         </header>
 
         <div className="workspace">
-          <section className="workspace-toolbar" aria-label="Research countries">
+          {!(["replies", "emails", "documents"] as string[]).includes(activeTool) && <section className="workspace-toolbar" aria-label="Research countries">
             <MultiCountrySelect selectedCountries={selectedCountries} onChange={setSelectedCountries} />
-          </section>
+          </section>}
 
           <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
             {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
