@@ -186,3 +186,10 @@
 - [x] Prepare the current local main branch and commit state.
 - [x] Create or select the new repository and push the project.
 - [x] Confirm the final GitHub URL and remote branch.
+
+## Remove Express server
+
+- [x] Audit package scripts, build configuration, and documentation for server references.
+- [x] Remove the Express server entrypoint and server-only build output.
+- [x] Validate the Vite static build and client-side routes.
+- [x] Save and document the frontend-only version.
