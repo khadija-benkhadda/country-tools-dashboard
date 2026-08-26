@@ -16,6 +16,7 @@ import {
   Map,
   MapPin,
   Menu,
+  MessageCircle,
   Moon,
   RefreshCw,
   Search,
@@ -46,6 +47,7 @@ const navItems = [
   { id: "addresses", href: "/addresses", label: "Address Generator", icon: MapPin },
   { id: "places", href: "/places", label: "Places Explorer", icon: Map },
   { id: "documents", href: "/documents", label: "PDF & Book Finder", icon: BookOpen },
+  { id: "replies", href: "/replies", label: "Short Reply Generator", icon: MessageCircle },
 ];
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -68,6 +70,16 @@ function stripCountrySuffix(value: string, countryName: string) {
 
 function copyAllResults<T>(rows: T[], formatter: (row: T) => string, label: string, countryName: string) {
   copyToClipboard(rows.map((row) => stripCountrySuffix(formatter(row), countryName)).join("\n"), `${rows.length.toLocaleString()} ${label} copied`);
+}
+
+function CopyButton({ text, compact = false }: { text: string; compact?: boolean }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    copyToClipboard(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1400);
+  };
+  return <button className={cx("inline-action", compact && "inline-action--compact")} onClick={handleCopy} type="button" aria-label="Copy reply">{copied ? <Check size={14} /> : <Clipboard size={14} />}<span>{copied ? "Copied" : "Copy"}</span></button>;
 }
 
 function SelectControl({ label, value, onChange, options, className = "" }: { label: string; value: string; onChange: (value: string) => void; options: string[]; className?: string }) {
@@ -181,6 +193,9 @@ export default function Home() {
   const [documentCount, setDocumentCount] = useState("1,000");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
+  const [replyMessage, setReplyMessage] = useState("");
+  const [replyTone, setReplyTone] = useState("Simple");
+  const [generatedReply, setGeneratedReply] = useState("");
 
   const generateAcrossCountries = <T,>(total: number, generator: (profile: CountryProfile, count: number) => T[]) => {
     const base = Math.floor(total / selectedCountries.length);
@@ -228,6 +243,31 @@ export default function Home() {
     setDocuments(generatePdfQueries(topic, country, documentType, documentLanguage, parseResultCount(documentCount)));
     setLastAction("Open-access search queries generated");
     toast.success("Search ideas refreshed");
+  };
+
+  const generateReplyNow = () => {
+    const message = replyMessage.trim();
+    if (!message) {
+      toast.error("Paste a message first");
+      return;
+    }
+    const lower = message.toLowerCase();
+    const isThanks = /thank|thanks|appreciate|grateful/.test(lower);
+    const isQuestion = /\\?|how|what|when|where|can you|could you/.test(lower);
+    const isRequest = /please|need|send|share|help|request/.test(lower);
+    const replies = replyTone === "Polite"
+      ? isThanks ? "Thank you very much. I appreciate it." : isQuestion ? "Thanks for asking. I’ll check and get back to you shortly." : isRequest ? "Thanks for your message. I’ll take a look and follow up soon." : "Thanks for your message. I appreciate you reaching out."
+      : replyTone === "Casual"
+        ? isThanks ? "Thanks for everything!" : isQuestion ? "Thanks for asking — I’ll get back to you soon." : isRequest ? "Got it, thanks. I’ll take a look." : "Thanks for your message!"
+        : isThanks ? "Thanks for everything." : isQuestion ? "Thanks for asking. I’ll get back to you soon." : isRequest ? "Thanks for your message. I’ll take a look." : "Thanks for your message.";
+    setGeneratedReply(replies);
+    setLastAction("Short reply generated");
+    toast.success("Short reply ready");
+  };
+
+  const clearReply = () => {
+    setReplyMessage("");
+    setGeneratedReply("");
   };
 
   const randomizeEverything = () => {
@@ -291,6 +331,15 @@ export default function Home() {
           <div className="workspace-intro"><div><span className="eyebrow">{isOverview ? "01 / TOOLKIT" : `${String(navItems.findIndex((item) => item.id === activeTool) + 1).padStart(2, "0")} / INTERFACE`}</span><h2>{isOverview ? "Pick a signal. Build a route." : activeNavItem.label}</h2></div><p>{isOverview ? <>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</> : <>Focused interface for <strong>{country.name}</strong>. Change country above, then generate a fresh working set.</>}</p></div>
 
           <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
+            {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
+              <SectionIntro index="05" eyebrow="Message utility" title="Short Reply Generator" description="Create a simple, short response from any pasted message." icon={MessageCircle} note="FRONTEND ONLY" />
+              <div className="reply-composer">
+                <label className="field-control reply-message-field"><span>Paste message</span><textarea value={replyMessage} onChange={(event) => setReplyMessage(event.target.value)} placeholder="Example: Thanks for all your help..." rows={7} /></label>
+                <div className="reply-actions"><SelectControl label="Tone" value={replyTone} onChange={setReplyTone} options={["Simple", "Polite", "Casual"]} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate reply</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
+              </div>
+              <div className={cx("reply-output", !generatedReply && "reply-output--empty")}><div><span className="eyebrow">Generated reply</span><p>{generatedReply || "Your short reply will appear here."}</p></div>{generatedReply && <CopyButton text={generatedReply} compact />}</div>
+            </ToolCard>}
+
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">
               <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Create country-aware keyword angles to validate in Google Trends." icon={Flame} note="DEMO DATA / NO LIVE API" />
               <div className="tool-controls"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={resultCountOptions} /><label className="field-control search-control"><span>Filter results</span><span className="input-wrap"><Search size={15} /><input value={trendFilter} onChange={(event) => setTrendFilter(event.target.value)} placeholder="Search this set" /></span></label><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyAllResults(trends, (trend) => trend.searchQuery, "trend results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>

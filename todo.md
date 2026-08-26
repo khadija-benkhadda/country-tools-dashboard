@@ -77,3 +77,10 @@
 - [x] Add a multi-select country control with visible selected-country chips.
 - [x] Generate tool datasets across all selected countries while preserving one primary country context.
 - [x] Persist the selected countries and validate desktop/mobile behavior.
+
+## Short Reply Generator
+
+- [x] Add a dedicated Reply Generator route and sidebar link.
+- [x] Generate concise local replies from any pasted message with simple tone choices.
+- [x] Add Generate, Copy reply, and Clear actions with useful empty states.
+- [x] Validate the route, copy behavior, and responsive layout.

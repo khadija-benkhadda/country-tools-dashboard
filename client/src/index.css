@@ -532,3 +532,73 @@
   .country-multi-select { width: 100%; min-width: 0; }
   .country-multi-select__menu { left: 0; right: auto; width: 100%; }
 }
+
+/* Civic Index reply utility: simple message input, direct output, and no unnecessary decoration. */
+.reply-composer {
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.reply-message-field textarea {
+  width: 100%;
+  min-height: 10rem;
+  resize: vertical;
+  padding: 0.85rem;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--input);
+  font: inherit;
+  line-height: 1.55;
+}
+
+.reply-message-field textarea:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.reply-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.reply-actions .field-control {
+  min-width: 11rem;
+}
+
+.reply-output {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.reply-output p {
+  margin: 0.45rem 0 0;
+  color: var(--foreground);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.reply-output--empty p {
+  color: var(--muted-foreground);
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+@media (max-width: 680px) {
+  .reply-composer { padding: 1rem; }
+  .reply-actions { align-items: stretch; flex-direction: column; }
+  .reply-actions .field-control, .reply-actions button { width: 100%; }
+  .reply-output { align-items: stretch; flex-direction: column; padding: 1rem; }
+}
