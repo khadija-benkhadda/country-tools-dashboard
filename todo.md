@@ -133,3 +133,9 @@
 - [x] Remove non-functional breadcrumb, status, context, and explanatory copy from the shared shell.
 - [x] Remove decorative numbers, eyebrows, notes, and long descriptions from tool cards while keeping functional labels.
 - [x] Rebalance spacing after text removal and validate all routes on desktop/mobile.
+
+## Multi-language PDF and book finder
+
+- [x] Replace the single language select with a multi-language control.
+- [x] Preserve an Any option and generate across all selected languages.
+- [x] Validate the language summary, results, and mobile layout.

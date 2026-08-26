@@ -136,6 +136,26 @@ function MultiCountrySelect({ selectedCountries, onChange }: { selectedCountries
   );
 }
 
+function MultiLanguageSelect({ selectedLanguages, onChange }: { selectedLanguages: string[]; onChange: (languages: string[]) => void }) {
+  const toggleLanguage = (language: string) => {
+    if (language === "Any") {
+      onChange(["Any"]);
+      return;
+    }
+    const next = selectedLanguages.includes(language) ? selectedLanguages.filter((item) => item !== language && item !== "Any") : [...selectedLanguages.filter((item) => item !== "Any"), language];
+    onChange(next.length ? next : ["Any"]);
+  };
+
+  return (
+    <details className="country-multi-select language-multi-select">
+      <summary><span className="country-select__eyebrow"><BookOpen size={13} /> Languages</span><strong>{selectedLanguages.includes("Any") ? "Any" : `${selectedLanguages.length} selected`}</strong><ChevronDown size={16} aria-hidden="true" /></summary>
+      <div className="country-multi-select__menu">
+        {languageOptions.map((language) => <label className="country-multi-select__option" key={language}><input type="checkbox" checked={selectedLanguages.includes(language)} onChange={() => toggleLanguage(language)} /><span className="tone-dot" /> <span>{language}</span></label>)}
+      </div>
+    </details>
+  );
+}
+
 function MultiToneSelect({ selectedTones, onChange }: { selectedTones: string[]; onChange: (tones: string[]) => void }) {
   const toggleTone = (tone: string) => {
     if (selectedTones.includes(tone)) {
@@ -203,7 +223,18 @@ export default function Home() {
   const [places, setPlaces] = useState<PlaceQuery[]>(() => generateMapQueries(defaultCountry, "Random", defaultToolCounts.places));
 
   const [documentType, setDocumentType] = useState("Guide");
-  const [documentLanguage, setDocumentLanguage] = useState("Any");
+  const [selectedDocumentLanguages, setSelectedDocumentLanguages] = useState<string[]>(() => {
+    const stored = localStorage.getItem("country-tools-document-languages");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      } catch {
+        // Use Any when the saved language selection is invalid.
+      }
+    }
+    return ["Any"];
+  });
   const [documentCount, setDocumentCount] = useState("1,000");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
@@ -230,6 +261,18 @@ export default function Home() {
     return selectedCountries.flatMap((profile, index) => generator(profile, base + (index < remainder ? 1 : 0))).slice(0, total);
   };
 
+  const generateDocumentsAcrossSelections = (total: number) => {
+    const languages = selectedDocumentLanguages.includes("Any") || !selectedDocumentLanguages.length ? ["Any"] : selectedDocumentLanguages;
+    const perCountry = Math.floor(total / selectedCountries.length);
+    const countryRemainder = total % selectedCountries.length;
+    return selectedCountries.flatMap((profile, countryIndex) => {
+      const countryTotal = perCountry + (countryIndex < countryRemainder ? 1 : 0);
+      const perLanguage = Math.floor(countryTotal / languages.length);
+      const languageRemainder = countryTotal % languages.length;
+      return languages.flatMap((language, languageIndex) => generatePdfQueries(topic, profile, documentType, language, perLanguage + (languageIndex < languageRemainder ? 1 : 0)));
+    }).slice(0, total);
+  };
+
   useEffect(() => {
     localStorage.setItem("country-tools-reply-tones", JSON.stringify(selectedReplyTones));
   }, [selectedReplyTones]);
@@ -240,9 +283,13 @@ export default function Home() {
     setTrends(generateAcrossCountries(parseResultCount(trendCount), (profile, count) => generateTrendIdeas(profile, trendCategory, count)));
     setAddresses(generateAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count)));
     setPlaces(generateAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count)));
-    setDocuments(generateAcrossCountries(parseResultCount(documentCount), (profile, count) => generatePdfQueries(topic, profile, documentType, documentLanguage, count)));
+    setDocuments(generateDocumentsAcrossSelections(parseResultCount(documentCount)));
     setLastAction(`${selectedCountries.length} countr${selectedCountries.length === 1 ? "y" : "ies"} context loaded`);
   }, [selectedCountries]);
+
+  useEffect(() => {
+    localStorage.setItem("country-tools-document-languages", JSON.stringify(selectedDocumentLanguages));
+  }, [selectedDocumentLanguages]);
 
   const filteredTrends = useMemo(() => trends.filter((trend) => trend.keyword.toLowerCase().includes(trendFilter.toLowerCase()) || trend.category.toLowerCase().includes(trendFilter.toLowerCase())), [trends, trendFilter]);
   const trendPreview = filteredTrends.slice(0, 24);
@@ -271,7 +318,7 @@ export default function Home() {
   };
 
   const generateDocumentsNow = () => {
-    setDocuments(generatePdfQueries(topic, country, documentType, documentLanguage, parseResultCount(documentCount)));
+    setDocuments(generateDocumentsAcrossSelections(parseResultCount(documentCount)));
     setLastAction("Open-access search queries generated");
     toast.success("Search ideas refreshed");
   };
@@ -332,7 +379,7 @@ export default function Home() {
     const nextTrends = generateTrendIdeas(nextCountry, trendCategory, parseResultCount(trendCount));
     const nextAddresses = generateAddresses(nextCountry, parseResultCount(addressCount));
     const nextPlaces = generateMapQueries(nextCountry, placeType, parseResultCount(placeCount));
-    const nextDocuments = generatePdfQueries(topic, nextCountry, documentType, documentLanguage, parseResultCount(documentCount));
+    const nextDocuments = generatePdfQueries(topic, nextCountry, documentType, selectedDocumentLanguages[0] ?? "Any", parseResultCount(documentCount));
     setTrends(nextTrends);
     setAddresses(nextAddresses);
     setPlaces(nextPlaces);
@@ -422,7 +469,7 @@ export default function Home() {
 
             {(isOverview || activeTool === "documents") && <ToolCard id="documents" className="tool-card--documents">
               <SectionIntro index="04" eyebrow="Open access route" title="PDF & Book Finder" description="Create short public-document queries in the format: book name + pdf." icon={BookOpen} note="LEGAL DISCOVERY" />
-              <div className="tool-controls tool-controls--document"><SelectControl label="Content type" value={documentType} onChange={setDocumentType} options={documentTypeOptions} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><SelectControl label="Language" value={documentLanguage} onChange={setDocumentLanguage} options={languageOptions} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={resultCountOptions} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button><button className="secondary-button" onClick={() => copyAllResults(documents, (document) => document.query, "document results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
+              <div className="tool-controls tool-controls--document"><SelectControl label="Content type" value={documentType} onChange={setDocumentType} options={documentTypeOptions} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><MultiLanguageSelect selectedLanguages={selectedDocumentLanguages} onChange={setSelectedDocumentLanguages} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={resultCountOptions} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button><button className="secondary-button" onClick={() => copyAllResults(documents, (document) => document.query, "document results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
               <div className="notice-banner notice-banner--safe"><BookOpen size={16} /><span><strong>Publicly available material only.</strong> These queries do not bypass paywalls, DRM, copyright restrictions, or access controls.</span></div>
               <div className="document-list">{documentPreview.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{document.query}</strong></div></article>)}</div><div className="preview-note">Previewing {documentPreview.length.toLocaleString()} of {documents.length.toLocaleString()} generated document queries. The full collection stays in memory.</div>
             </ToolCard>}
