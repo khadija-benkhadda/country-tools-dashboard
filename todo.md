@@ -176,6 +176,6 @@
 
 ## GitHub push
 
-- [ ] Verify the target repository and local Git status.
-- [ ] Prepare a clean commit containing the current Country Tools project.
+- [x] Verify the target repository and local Git status; the provided URL currently returns 404 and the Git endpoint returns 403.
+- [x] Prepare a clean commit containing the current Country Tools project (commit `4bcf4f9`).
 - [ ] Push the commit to the requested GitHub repository and confirm the branch and commit.
