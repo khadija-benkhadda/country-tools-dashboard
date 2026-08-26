@@ -1,5 +1,5 @@
 // Civic Index design note: this page is the research desk — orient first, reveal useful synthetic outputs, and keep external actions explicit.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -11,7 +11,6 @@ import {
   Clipboard,
   Flame,
   Globe2,
-  Layers3,
   Lightbulb,
   Map,
   MapPin,
@@ -34,6 +33,7 @@ import {
   generateMapQueries,
   generatePdfQueries,
   generateTrendIdeas,
+  openGoogleTrends,
   languageOptions,
   placeTypeOptions,
   trendCategoryOptions,
@@ -58,7 +58,6 @@ const cx = (...classes: Array<string | false | null | undefined>) => classes.fil
 const resultCountOptions = ["1,000", "2,000", "5,000", "10,000"];
 const parseResultCount = (value: string) => Number(value.replaceAll(",", ""));
 const formatCount = (value: number) => value.toLocaleString("en-US");
-const trendWeekOptions = ["All", ...Array.from({ length: 52 }, (_, index) => `Week ${String(index + 1).padStart(2, "0")}`)];
 
 function copyToClipboard(text: string, label = "Copied to clipboard") {
   if (navigator.clipboard) {
@@ -185,9 +184,6 @@ function ToolCard({ children, className = "", id }: { children: React.ReactNode;
   return <section id={id} className={cx("tool-card", className)}>{children}</section>;
 }
 
-function EmptyState({ text }: { text: string }) {
-  return <div className="empty-state"><Layers3 size={22} /><p>{text}</p></div>;
-}
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -212,9 +208,7 @@ export default function Home() {
   const [, setLastAction] = useState("Country context loaded");
 
   const [trendCategory, setTrendCategory] = useState("All");
-  const [trendWeek, setTrendWeek] = useState("All");
   const [trendCount, setTrendCount] = useState("1,000");
-  const [trendFilter, setTrendFilter] = useState("");
   const [trends, setTrends] = useState<TrendIdea[]>(() => generateTrendIdeas(defaultCountry, "All", defaultToolCounts.trends));
 
   const [addressCount, setAddressCount] = useState("1,000");
@@ -263,6 +257,17 @@ export default function Home() {
     return selectedCountries.flatMap((profile, index) => generator(profile, base + (index < remainder ? 1 : 0))).slice(0, total);
   };
 
+  const generateTrendsAcrossSelections = (total: number) => {
+    const generated = generateAcrossCountries(total, (profile, count) => generateTrendIdeas(profile, trendCategory, count));
+    const seen = new Set<string>();
+    return generated.filter((trend) => {
+      const key = trend.keyword.trim().toLocaleLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, total);
+  };
+
   const generateDocumentsAcrossSelections = (total: number) => {
     const languages = selectedDocumentLanguages.includes("Any") || !selectedDocumentLanguages.length ? ["Any"] : selectedDocumentLanguages;
     const perCountry = Math.floor(total / selectedCountries.length);
@@ -282,7 +287,7 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("country-tools-country", country.code);
     localStorage.setItem("country-tools-countries", JSON.stringify(selectedCountries.map((profile) => profile.code)));
-    setTrends(generateAcrossCountries(parseResultCount(trendCount), (profile, count) => generateTrendIdeas(profile, trendCategory, count)));
+    setTrends(generateTrendsAcrossSelections(parseResultCount(trendCount)));
     setAddresses(generateAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count)));
     setPlaces(generateAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count)));
     setDocuments(generateDocumentsAcrossSelections(parseResultCount(documentCount)));
@@ -293,8 +298,7 @@ export default function Home() {
     localStorage.setItem("country-tools-document-languages", JSON.stringify(selectedDocumentLanguages));
   }, [selectedDocumentLanguages]);
 
-  const filteredTrends = useMemo(() => trends.filter((trend) => (trendWeek === "All" || trend.week === trendWeek) && (trend.keyword.toLowerCase().includes(trendFilter.toLowerCase()) || trend.category.toLowerCase().includes(trendFilter.toLowerCase()))), [trends, trendFilter, trendWeek]);
-  const trendPreview = filteredTrends.slice(0, 24);
+  const trendPreview = trends.slice(0, 24);
   const addressPreview = addresses.slice(0, 24);
   const placePreview = places.slice(0, 24);
   const documentPreview = documents.slice(0, 24);
@@ -302,7 +306,7 @@ export default function Home() {
   const closeMobileNav = () => setMobileNavOpen(false);
 
   const generateTrendsNow = () => {
-    setTrends(generateTrendIdeas(country, trendCategory, parseResultCount(trendCount)));
+    setTrends(generateTrendsAcrossSelections(parseResultCount(trendCount)));
     setLastAction(`New ${trendCategory.toLowerCase()} pulse generated`);
     toast.success("Trend ideas refreshed");
   };
@@ -449,12 +453,11 @@ export default function Home() {
             </ToolCard>}
 
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">
-              <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Create country-aware keyword angles to validate in Google Trends." icon={Flame} note="DEMO DATA / NO LIVE API" />
-              <div className="tool-controls"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Week" value={trendWeek} onChange={setTrendWeek} options={trendWeekOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={resultCountOptions} /><label className="field-control search-control"><span>Filter results</span><span className="input-wrap"><Search size={15} /><input value={trendFilter} onChange={(event) => setTrendFilter(event.target.value)} placeholder="Search this set" /></span></label><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyAllResults(trends, (trend) => trend.keyword, "trend results", country.name)} type="button"><Clipboard size={15} /> Copy all results</button></div>
-              <div className="notice-banner"><Lightbulb size={16} /><span><strong>Generated trend ideas</strong> — randomized country examples, not real-time Google Trends data. Use the links below to validate live interest.</span></div>
-              {filteredTrends.length === 0 && <EmptyState text="No trend ideas match this filter. Try a broader phrase or generate a new set." />}
-              {filteredTrends.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Week</span><span>Category</span><span>Signal</span><span>Actions</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><strong>{trend.keyword}</strong></div><span className="trend-week">{trend.week}</span><Badge variant="outline" className="soft-badge">{trend.category}</Badge><div className="signal-score"><span className="score-bar"><i style={{ width: `${trend.score}%` }} /></span><small>{trend.trendType}</small></div></div>)}</div>}
-              {filteredTrends.length > trendPreview.length && <div className="preview-note">Previewing {trendPreview.length.toLocaleString()} of {filteredTrends.length.toLocaleString()} generated ideas. The full collection stays in memory for filtering and export.</div>}
+              <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Generate keyword ideas and validate them in Google Trends over the last 7 days." icon={Flame} note="DEMO DATA / NO LIVE API" />
+              <div className="tool-controls tool-controls--trends"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={resultCountOptions} /><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button></div>
+              <div className="notice-banner"><Lightbulb size={16} /><span><strong>Generated trend ideas</strong> — randomized demo keywords, not live Google Trends data. Open any keyword to validate the last 7 days in Google Trends.</span></div>
+              {trendPreview.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Google Trends</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><a className="trend-keyword-link" href={openGoogleTrends(trend.searchQuery)} target="_blank" rel="noreferrer">{trend.keyword}</a></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><a className="trend-validate-link" href={openGoogleTrends(trend.searchQuery)} target="_blank" rel="noreferrer">Last 7 days ↗</a></div>)}</div>}
+              {trends.length > trendPreview.length && <div className="preview-note">Previewing {trendPreview.length.toLocaleString()} of {trends.length.toLocaleString()} generated ideas. The full collection stays in memory.</div>}
             </ToolCard>}
 
             {(isOverview || activeTool === "addresses") && <ToolCard id="addresses" className="tool-card--address">

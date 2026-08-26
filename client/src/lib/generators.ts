@@ -8,7 +8,6 @@ export type TrendIdea = {
   trendType: string;
   searchQuery: string;
   score: number;
-  week: string;
 };
 
 export type SyntheticAddress = {
@@ -46,6 +45,7 @@ export type EmailPair = {
 };
 
 const trendTypes = ["Rising idea", "Breakout angle", "Seasonal signal", "Local pulse"];
+const trendQualifiers = ["ideas", "guide", "tips", "planning", "updates", "options", "resources", "prices", "benefits", "comparison", "basics", "checklist", "examples", "services", "schedule", "information", "support", "online", "local", "today", "new", "best", "simple", "public", "free", "advanced", "nearby", "learning", "community", "seasonal", "practical", "official", "quick", "smart", "daily", "weekly", "popular", "current", "trusted", "useful", "beginner", "professional", "home", "work", "family", "student", "business", "travel", "health", "digital", "modern"];
 const placeTypes = ["Restaurant", "Coffee Shop", "Bookstore", "Library", "Museum", "Park", "Shopping Center", "Hotel", "Gym", "Cinema", "Tourist Attraction", "University", "Local Market"];
 const contentSources: Record<string, string> = {
   "Public Domain Book": "archive.org / Project Gutenberg",
@@ -102,7 +102,7 @@ const encode = (value: string) => encodeURIComponent(value);
 
 export const openGoogleSearch = (query: string) => `https://www.google.com/search?q=${encode(query)}`;
 export const openGoogleMaps = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encode(query)}`;
-export const openGoogleTrends = (query: string) => `https://trends.google.com/trends/explore?q=${encode(query)}`;
+export const openGoogleTrends = (query: string) => `https://trends.google.com/trends/explore?q=${encode(query)}&date=now%207-d`;
 
 const createId = (prefix: string, index: number) => `${prefix}-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -111,18 +111,17 @@ export const generateTrendIdeas = (country: CountryProfile, category: string, co
   const randomizedIdeas = shuffle(available);
   return Array.from({ length: count }, (_, index) => {
     const baseKeyword = randomizedIdeas[index % randomizedIdeas.length];
-    const weekNumber = (index % 52) + 1;
-    const cycle = Math.floor(index / 52) + 1;
-    const keyword = `${baseKeyword} ${String(weekNumber).padStart(2, "0")}-${cycle}`;
-    const city = country.cities[index % country.cities.length];
+    const qualifierIndex = Math.floor(index / randomizedIdeas.length);
+    const firstQualifier = trendQualifiers[qualifierIndex % trendQualifiers.length];
+    const secondQualifier = trendQualifiers[Math.floor(qualifierIndex / trendQualifiers.length) % trendQualifiers.length];
+    const keyword = index < randomizedIdeas.length ? baseKeyword : `${baseKeyword} ${firstQualifier} ${secondQualifier}`;
     return {
       id: createId("trend", index),
       keyword,
       category,
       trendType: pick(trendTypes),
-      searchQuery: `${baseKeyword} ${city}, ${country.name}`,
+      searchQuery: keyword,
       score: randomInt(64, 98),
-      week: `Week ${String(weekNumber).padStart(2, "0")}`,
     };
   });
 };

@@ -160,3 +160,16 @@
 - [x] Guarantee unique displayed and copied results in Addresses, Places, PDF/Book, Replies, and Gmail pairs.
 - [x] Add weekly trend labels and distinct trend words for searchable weekly sets.
 - [x] Validate large-volume uniqueness and save a new checkpoint.
+
+## Trends Explorer — last 7 days simplification
+
+- [x] Remove the Week filter, search field, Copy all results button, Week column, Signal column, and technical keyword suffixes.
+- [x] Generate Google Trends links using the last 7 days window.
+- [x] Keep concise trend keywords, category context, and clear demo-data wording.
+- [x] Validate the simplified route and save a new checkpoint.
+
+## Style Decisions
+
+- Trends Explorer should prioritize a compact research table with keyword, category, and direct Google Trends validation links.
+- Google Trends links should use the last 7 days window (`now 7-d`) instead of exposing a local synthetic week selector.
+- Technical uniqueness suffixes must not appear in displayed or copied trend keywords.
