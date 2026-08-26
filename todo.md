@@ -241,3 +241,9 @@
 - [x] Add a checkbox multi-select for Content type.
 - [x] Distribute generated queries across the selected content types.
 - [x] Validate persistence, responsive layout, build, and save the update.
+
+## Push Content type multi-select
+
+- [ ] Verify the local branch and GitHub remote.
+- [ ] Commit the multi-select update.
+- [ ] Push `main` and confirm the remote commit.
