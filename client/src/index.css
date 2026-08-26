@@ -648,3 +648,7 @@
   .reply-list { max-height: 28rem; }
   .reply-list__row { grid-template-columns: 2.8rem 1fr; padding-inline: 1rem; }
 }
+
+/* Multi-tone reply selector: same compact control language as the country selector. */
+.tone-multi-select { min-width: 13rem; }
+.tone-dot { width: 0.45rem; height: 0.45rem; border-radius: 999px; background: var(--primary); }

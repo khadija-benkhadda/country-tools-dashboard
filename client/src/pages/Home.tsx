@@ -132,6 +132,26 @@ function MultiCountrySelect({ selectedCountries, onChange }: { selectedCountries
   );
 }
 
+function MultiToneSelect({ selectedTones, onChange }: { selectedTones: string[]; onChange: (tones: string[]) => void }) {
+  const toggleTone = (tone: string) => {
+    if (selectedTones.includes(tone)) {
+      if (selectedTones.length === 1) return;
+      onChange(selectedTones.filter((item) => item !== tone));
+      return;
+    }
+    onChange([...selectedTones, tone]);
+  };
+
+  return (
+    <details className="country-multi-select tone-multi-select">
+      <summary><span className="country-select__eyebrow"><MessageCircle size={13} /> Reply tones</span><strong>{selectedTones.length} selected</strong><ChevronDown size={16} aria-hidden="true" /></summary>
+      <div className="country-multi-select__menu">
+        {["Simple", "Polite", "Casual"].map((tone) => <label className="country-multi-select__option" key={tone}><input type="checkbox" checked={selectedTones.includes(tone)} onChange={() => toggleTone(tone)} /><span className="tone-dot" /> <span>{tone}</span></label>)}
+      </div>
+    </details>
+  );
+}
+
 function SectionIntro({ index, eyebrow, title, description, icon: Icon, note }: { index: string; eyebrow: string; title: string; description: string; icon: typeof Flame; note?: string }) {
   return (
     <div className="section-intro">
@@ -193,7 +213,18 @@ export default function Home() {
   const [documentCount, setDocumentCount] = useState("1,000");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
-  const [replyTone, setReplyTone] = useState("Simple");
+  const [selectedReplyTones, setSelectedReplyTones] = useState<string[]>(() => {
+    const stored = localStorage.getItem("country-tools-reply-tones");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      } catch {
+        // Use Simple when the saved tone selection is invalid.
+      }
+    }
+    return ["Simple"];
+  });
   const [replyCount, setReplyCount] = useState("1,000");
   const [generatedReplies, setGeneratedReplies] = useState<string[]>([]);
 
@@ -202,6 +233,10 @@ export default function Home() {
     const remainder = total % selectedCountries.length;
     return selectedCountries.flatMap((profile, index) => generator(profile, base + (index < remainder ? 1 : 0))).slice(0, total);
   };
+
+  useEffect(() => {
+    localStorage.setItem("country-tools-reply-tones", JSON.stringify(selectedReplyTones));
+  }, [selectedReplyTones]);
 
   useEffect(() => {
     localStorage.setItem("country-tools-country", country.code);
@@ -264,15 +299,19 @@ export default function Home() {
   };
 
   const generateReplyNow = () => {
-    const parts = replyParts[replyTone] ?? replyParts.Simple;
-    const pool = Array.from({ length: parts.openers.length * parts.middles.length * parts.closers.length }, (_, index) => {
-      const opener = parts.openers[Math.floor(index / (parts.middles.length * parts.closers.length)) % parts.openers.length];
-      const middle = parts.middles[Math.floor(index / parts.closers.length) % parts.middles.length];
-      const closer = parts.closers[index % parts.closers.length];
-      return `${opener}. ${middle}. ${closer}`;
+    const tones = selectedReplyTones.length ? selectedReplyTones : ["Simple"];
+    const pool = tones.flatMap((tone) => {
+      const parts = replyParts[tone] ?? replyParts.Simple;
+      return Array.from({ length: parts.openers.length * parts.middles.length * parts.closers.length }, (_, index) => {
+        const opener = parts.openers[Math.floor(index / (parts.middles.length * parts.closers.length)) % parts.openers.length];
+        const middle = parts.middles[Math.floor(index / parts.closers.length) % parts.middles.length];
+        const closer = parts.closers[index % parts.closers.length];
+        return `${opener}. ${middle}. ${closer}`;
+      });
     });
+    const uniquePool = Array.from(new Set(pool));
     const count = parseResultCount(replyCount);
-    const shuffled = pool.sort(() => Math.random() - 0.5);
+    const shuffled = uniquePool.sort(() => Math.random() - 0.5);
     const nextReplies = Array.from({ length: count }, (_, index) => shuffled[index % shuffled.length] + (index >= shuffled.length ? ` — ${index + 1}` : ""));
     setGeneratedReplies(nextReplies);
     setLastAction(`${count.toLocaleString()} unique short replies generated`);
@@ -347,8 +386,8 @@ export default function Home() {
             {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
               <SectionIntro index="05" eyebrow="Message utility" title="Short Reply Generator" description="Generate a simple, short response instantly." icon={MessageCircle} note="FRONTEND ONLY" />
               <div className="reply-composer">
-                <div className="reply-direct-note"><MessageCircle size={18} /><div><strong>Ready to reply?</strong><p>Choose a tone and generate a large set of short messages instantly.</p></div></div>
-                <div className="reply-actions"><SelectControl label="Tone" value={replyTone} onChange={setReplyTone} options={["Simple", "Polite", "Casual"]} /><SelectControl label="Results" value={replyCount} onChange={setReplyCount} options={resultCountOptions} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate replies</button><button className="secondary-button" onClick={() => copyToClipboard(generatedReplies.join("\n"), `${generatedReplies.length.toLocaleString()} replies copied`)} disabled={!generatedReplies.length} type="button"><Clipboard size={15} /> Copy all replies</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
+                <div className="reply-direct-note"><MessageCircle size={18} /><div><strong>Ready to reply?</strong><p>Choose one or more tones and generate a large set of short messages instantly.</p></div></div>
+                <div className="reply-actions"><MultiToneSelect selectedTones={selectedReplyTones} onChange={setSelectedReplyTones} /><SelectControl label="Results" value={replyCount} onChange={setReplyCount} options={resultCountOptions} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate replies</button><button className="secondary-button" onClick={() => copyToClipboard(generatedReplies.join("\n"), `${generatedReplies.length.toLocaleString()} replies copied`)} disabled={!generatedReplies.length} type="button"><Clipboard size={15} /> Copy all replies</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
               </div>
               <div className={cx("reply-output", !generatedReplies.length && "reply-output--empty")}>
                 {generatedReplies.length ? <div className="reply-list">{generatedReplies.map((reply, index) => <div className="reply-list__row" key={`${reply}-${index}`}><span>{String(index + 1).padStart(4, "0")}</span><p>{reply}</p></div>)}</div> : <div><span className="eyebrow">Generated replies</span><p>Choose a tone and generate 1,000 short replies.</p></div>}

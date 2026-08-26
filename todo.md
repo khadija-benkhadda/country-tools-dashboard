@@ -102,3 +102,9 @@
 - [x] Build unique reply variants from the selected tone.
 - [x] Guarantee no duplicate strings in each generated collection.
 - [x] Validate uniqueness at 1,000 results and save a new checkpoint.
+
+## Multi-tone replies
+
+- [x] Replace the single tone select with a multi-tone control.
+- [x] Generate unique replies from all selected tones.
+- [x] Validate selected-tone display, 1,000+ results, and responsive behavior.
