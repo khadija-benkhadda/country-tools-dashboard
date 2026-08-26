@@ -228,3 +228,9 @@
 - [x] Keep only the user-facing result in copied content, without countries, counts, units, zones, labels, or technical suffixes.
 - [x] Apply the same line-by-line clean format to downloads.
 - [x] Validate every route and save the update.
+
+## Push latest cleaned version to GitHub
+
+- [ ] Verify the local branch and GitHub remote.
+- [ ] Commit any remaining local changes.
+- [ ] Push `main` and confirm the remote commit.
