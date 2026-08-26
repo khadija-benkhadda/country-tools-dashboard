@@ -146,3 +146,10 @@
 - [x] Hide Research countries from Short Reply Generator and PDF & Book Finder.
 - [x] Keep country selection visible on Trends, Address, and Places.
 - [x] Validate all affected routes and save a new checkpoint.
+
+## Trend keywords only
+
+- [x] Remove city and country suffixes from Trends display.
+- [x] Copy only the keyword text in Copy all results.
+- [x] Keep filters, category, result count, and randomization working.
+- [x] Validate Trends Explorer and save a new checkpoint.
