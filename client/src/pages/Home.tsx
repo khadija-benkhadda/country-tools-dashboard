@@ -99,6 +99,27 @@ function CountrySelect({ country, onChange, compact = false }: { country: Countr
   );
 }
 
+function MultiCountrySelect({ selectedCountries, onChange }: { selectedCountries: CountryProfile[]; onChange: (countries: CountryProfile[]) => void }) {
+  const selectedCodes = new Set(selectedCountries.map((profile) => profile.code));
+  const toggleCountry = (profile: CountryProfile) => {
+    if (selectedCodes.has(profile.code)) {
+      if (selectedCountries.length === 1) return;
+      onChange(selectedCountries.filter((item) => item.code !== profile.code));
+      return;
+    }
+    onChange([...selectedCountries, profile]);
+  };
+
+  return (
+    <details className="country-multi-select">
+      <summary><span className="country-select__eyebrow"><Globe2 size={13} /> Research countries</span><strong>{selectedCountries.length} selected</strong><ChevronDown size={16} aria-hidden="true" /></summary>
+      <div className="country-multi-select__menu">
+        {countryProfiles.map((profile) => <label className="country-multi-select__option" key={profile.code}><input type="checkbox" checked={selectedCodes.has(profile.code)} onChange={() => toggleCountry(profile)} /><span className="country-code">{profile.code}</span><span>{profile.name}</span></label>)}
+      </div>
+    </details>
+  );
+}
+
 function SectionIntro({ index, eyebrow, title, description, icon: Icon, note }: { index: string; eyebrow: string; title: string; description: string; icon: typeof Flame; note?: string }) {
   return (
     <div className="section-intro">
@@ -123,7 +144,19 @@ function EmptyState({ text }: { text: string }) {
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
-  const [country, setCountry] = useState<CountryProfile>(() => findCountry(localStorage.getItem("country-tools-country") ?? defaultCountry.code));
+  const [selectedCountries, setSelectedCountries] = useState<CountryProfile[]>(() => {
+    const stored = localStorage.getItem("country-tools-countries");
+    if (stored) {
+      try {
+        const profiles = JSON.parse(stored).map((code: string) => findCountry(code));
+        if (profiles.length) return profiles;
+      } catch {
+        // Fall back to the default country when saved selection is invalid.
+      }
+    }
+    return [findCountry(localStorage.getItem("country-tools-country") ?? defaultCountry.code)];
+  });
+  const country = selectedCountries[0] ?? defaultCountry;
   const [location] = useLocation();
   const activeNavItem = navItems.find((item) => item.href === location) ?? navItems[0];
   const activeTool = activeNavItem.id;
@@ -149,14 +182,21 @@ export default function Home() {
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>(() => generatePdfQueries("marketing", defaultCountry, "Guide", "Any", defaultToolCounts.documents));
 
+  const generateAcrossCountries = <T,>(total: number, generator: (profile: CountryProfile, count: number) => T[]) => {
+    const base = Math.floor(total / selectedCountries.length);
+    const remainder = total % selectedCountries.length;
+    return selectedCountries.flatMap((profile, index) => generator(profile, base + (index < remainder ? 1 : 0))).slice(0, total);
+  };
+
   useEffect(() => {
     localStorage.setItem("country-tools-country", country.code);
-    setTrends(generateTrendIdeas(country, trendCategory, parseResultCount(trendCount)));
-    setAddresses(generateAddresses(country, parseResultCount(addressCount)));
-    setPlaces(generateMapQueries(country, placeType, parseResultCount(placeCount)));
-    setDocuments(generatePdfQueries(topic, country, documentType, documentLanguage, parseResultCount(documentCount)));
-    setLastAction(`${country.name} context loaded`);
-  }, [country]);
+    localStorage.setItem("country-tools-countries", JSON.stringify(selectedCountries.map((profile) => profile.code)));
+    setTrends(generateAcrossCountries(parseResultCount(trendCount), (profile, count) => generateTrendIdeas(profile, trendCategory, count)));
+    setAddresses(generateAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count)));
+    setPlaces(generateAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count)));
+    setDocuments(generateAcrossCountries(parseResultCount(documentCount), (profile, count) => generatePdfQueries(topic, profile, documentType, documentLanguage, count)));
+    setLastAction(`${selectedCountries.length} countr${selectedCountries.length === 1 ? "y" : "ies"} context loaded`);
+  }, [selectedCountries]);
 
   const filteredTrends = useMemo(() => trends.filter((trend) => trend.keyword.toLowerCase().includes(trendFilter.toLowerCase()) || trend.category.toLowerCase().includes(trendFilter.toLowerCase())), [trends, trendFilter]);
   const trendPreview = filteredTrends.slice(0, 24);
@@ -193,7 +233,7 @@ export default function Home() {
   const randomizeEverything = () => {
     const otherCountries = countryProfiles.filter((profile) => profile.code !== country.code);
     const nextCountry = otherCountries[Math.floor(Math.random() * otherCountries.length)];
-    setCountry(nextCountry);
+    setSelectedCountries([nextCountry]);
     const nextTrends = generateTrendIdeas(nextCountry, trendCategory, parseResultCount(trendCount));
     const nextAddresses = generateAddresses(nextCountry, parseResultCount(addressCount));
     const nextPlaces = generateMapQueries(nextCountry, placeType, parseResultCount(placeCount));
@@ -245,7 +285,7 @@ export default function Home() {
         <div className="workspace">
           <section className="workspace-toolbar" aria-label="Current workspace">
             <div className="workspace-toolbar__identity"><span className="eyebrow">Selected country</span><strong>{country.name}</strong><span className="workspace-toolbar__region">{country.code} · {country.region}</span></div>
-            <CountrySelect country={country} onChange={setCountry} compact />
+            <MultiCountrySelect selectedCountries={selectedCountries} onChange={setSelectedCountries} />
           </section>
 
           <div className="workspace-intro"><div><span className="eyebrow">{isOverview ? "01 / TOOLKIT" : `${String(navItems.findIndex((item) => item.id === activeTool) + 1).padStart(2, "0")} / INTERFACE`}</span><h2>{isOverview ? "Pick a signal. Build a route." : activeNavItem.label}</h2></div><p>{isOverview ? <>All generators use <strong>{country.name}</strong> as their shared context. Synthetic outputs are clearly marked; Google destinations are only a click away.</> : <>Focused interface for <strong>{country.name}</strong>. Change country above, then generate a fresh working set.</>}</p></div>

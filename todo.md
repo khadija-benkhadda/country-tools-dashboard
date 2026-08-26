@@ -71,3 +71,9 @@
 - [x] Remove per-row Copy, Validate trends, and Google Maps buttons.
 - [x] Keep global Copy all results controls available.
 - [x] Validate row alignment and responsive layouts across the remaining tools.
+
+## Multi-country selector
+
+- [x] Add a multi-select country control with visible selected-country chips.
+- [x] Generate tool datasets across all selected countries while preserving one primary country context.
+- [x] Persist the selected countries and validate desktop/mobile behavior.
