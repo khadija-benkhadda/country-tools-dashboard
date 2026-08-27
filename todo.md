@@ -287,3 +287,9 @@
 - [x] Restore a clear separator between the main Places query and its search details.
 - [x] Copy and download only the main text before the separator.
 - [x] Validate the red-box example format and the production build.
+
+## Remove global Randomize all
+
+- [x] Locate the global Randomize all button and verify Random defaults.
+- [x] Remove only the global button.
+- [x] Validate the unchanged controls and production build.

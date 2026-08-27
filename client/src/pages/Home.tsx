@@ -526,22 +526,6 @@ export default function Home() {
     toast.success(`${count.toLocaleString()} email pairs ready`);
   };
 
-  const randomizeEverything = () => {
-    const otherCountries = countryProfiles.filter((profile) => profile.code !== country.code);
-    const nextCountry = otherCountries[Math.floor(Math.random() * otherCountries.length)];
-    setSelectedCountries([nextCountry]);
-    const nextTrends = generateTrendIdeas(nextCountry, trendCategory, parseResultCount(trendCount));
-    const nextAddresses = generateUniqueAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count), (address) => cleanAddressResult(address, address.country), [nextCountry]);
-    const nextPlaces = generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => place.query, [nextCountry]);
-    const nextDocuments = generateUniqueDocuments(parseResultCount(documentCount), [nextCountry]);
-    setTrends(nextTrends);
-    setAddresses(nextAddresses);
-    setPlaces(nextPlaces);
-    setDocuments(nextDocuments);
-    setLastAction(`Everything randomized for ${nextCountry.name}`);
-    toast.success(`New research set: ${nextCountry.name}`);
-  };
-
   return (
     <div className="app-shell">
       <aside className={cx("sidebar", mobileNavOpen && "sidebar--open")}>
@@ -573,7 +557,6 @@ export default function Home() {
           <div className="topbar__left"><button className="mobile-menu" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={19} /></button></div>
           <div className="topbar__right">
             <button className="icon-button" onClick={toggleTheme} type="button" aria-label="Toggle dark mode">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
-            <button className="randomize-button" onClick={randomizeEverything} type="button"><RefreshCw size={15} /> <span>Randomize all</span></button>
           </div>
         </header>
 
