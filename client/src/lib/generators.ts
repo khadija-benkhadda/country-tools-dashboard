@@ -291,45 +291,29 @@ const emailThemes = [
   { subject: "the support request", message: "I’m following up on the support request and the solution being prepared." },
   { subject: "the final confirmation", message: "I’m sending the final confirmation so we can close this item with confidence." },
 ];
-const emailSubjectOpeners = ["Quick follow-up", "A small update", "Checking in", "One thing to share", "A note for you", "Next steps", "Friendly reminder", "Thank you", "Your request", "A helpful update"];
+const emailSubjectStyles = ["A quick note about", "A quick update on", "Following up on", "A note about", "Checking in about", "Details for", "Reviewing", "Confirming", "Regarding", "Sharing a note about"];
 const emailSubjectQualifiers = ["for review", "for reference", "for approval", "for discussion", "for planning", "for confirmation", "for follow-up", "for your input", "for the record", "for next steps", "for a quick look", "for this project", "for the team", "for today", "for tomorrow", "for the meeting", "for the schedule", "for the update", "for the file", "for your notes"];
-const emailSubjectContexts = ["this morning", "this afternoon", "this evening", "this week", "next week", "when convenient", "before the meeting", "after our call", "as discussed", "as planned", "for the next step", "for a quick check", "for your review", "for the record", "for the current project", "for the latest update", "for the shared file", "for the team", "for today", "for tomorrow"];
+const emailSubjectContexts = ["this morning", "this afternoon", "this evening", "this week", "next week", "when convenient", "before the meeting", "after our call", "as discussed", "as planned", "with the next step", "for a quick check", "with your review", "on the record", "in the current project", "with the latest update", "in the shared file", "with the team", "today", "tomorrow"];
 const emailGreetings = ["Hi,", "Hello,", "Hope you’re well,", "Good morning,", "Good afternoon,"];
-const emailMessageQualifiers = ["I hope this helps", "I appreciate your time", "I’ll keep you posted", "I’ll share more soon", "I’m available if needed", "I’ll review this again", "I’ll follow up shortly", "I’ll keep this moving", "I’ll send the next update", "I’m happy to clarify", "I’ll confirm the details", "I’ll stay in touch", "I’ll take care of it", "I’ll check and respond", "I’ll keep the record updated", "I’ll make a note of this", "I’ll coordinate the next step", "I’ll return with an update", "I’ll review the file", "I’ll follow through"];
-const emailMessageTransitions = ["As a quick follow-up", "As a brief note", "For clarity", "To keep things moving", "As planned", "For your convenience", "As a helpful update", "To confirm the details", "For the next step", "As requested"];
-const emailMessageContexts = ["when convenient", "for your reference", "as discussed", "before we continue", "for the next step", "at your convenience", "for a quick review", "as a small update", "for today", "for this week", "with appreciation", "before the meeting", "after our call", "for the project", "for the team", "for the record", "during the next step", "when you have time", "for follow-up", "as planned"];
-
-const uniqueNaturalVariant = (base: string, phrases: string[], seen: Set<string>) => {
-  let candidate = base;
-  let variantIndex = 0;
-  while (seen.has(candidate)) {
-    const indexes = [
-      variantIndex % phrases.length,
-      Math.floor(variantIndex / phrases.length) % phrases.length,
-      Math.floor(variantIndex / (phrases.length * phrases.length)) % phrases.length,
-    ];
-    const distinctPhrases = indexes.filter((index, position) => indexes.indexOf(index) === position).map((index) => phrases[index]);
-    candidate = `${base} — ${distinctPhrases.join(", ")}`;
-    variantIndex += 1;
-  }
-  seen.add(candidate);
-  return candidate;
-};
+const emailMessageTransitions = ["I hope you’re doing well.", "I wanted to send a quick note.", "Thanks for your time.", "Just a quick update from me.", "I’m getting in touch today.", "I wanted to keep this moving.", "Here’s the information I have.", "I’m sharing a brief note.", "I hope this reaches you well.", "Thanks for taking a moment to read this."];
+const emailMessageNotes = ["I hope this helps", "I appreciate your time", "I’ll keep you posted", "I’ll share more soon", "I’m available if needed", "I’ll review this again", "I’ll follow up shortly", "I’ll keep this moving", "I’ll send the next update", "I’m happy to clarify", "I’ll confirm the details", "I’ll stay in touch", "I’ll take care of it", "I’ll check and respond", "I’ll keep the record updated", "I’ll make a note of this", "I’ll coordinate the next step", "I’ll return with an update", "I’ll review the file", "I’ll follow through"];
+const emailMessageClosers = ["Let me know what you think.", "Please let me know if you have any questions.", "I’d be happy to clarify anything.", "Let me know if this works for you.", "I look forward to hearing from you.", "Thanks for taking a look.", "I’ll keep you posted.", "Please share any feedback when convenient.", "Let me know if anything needs to change.", "Thanks again for your help.", "I appreciate your time.", "I’ll follow up soon.", "Please let me know what you prefer.", "I’m here if you need anything else.", "Thanks for reviewing this.", "I look forward to your thoughts.", "Let me know how you’d like to proceed.", "I’ll be in touch with the next update.", "Please feel free to ask any questions.", "Thanks again."];
 
 export const generateEmailPairs = (count: number): EmailPair[] => {
-  const poolSize = emailThemes.length * emailSubjectOpeners.length * emailSubjectQualifiers.length * emailSubjectContexts.length;
+  const poolSize = emailThemes.length * emailSubjectStyles.length * emailSubjectQualifiers.length * emailSubjectContexts.length;
   const pool = Array.from({ length: poolSize }, (_, index) => {
     const theme = emailThemes[index % emailThemes.length];
     const subjectBaseIndex = Math.floor(index / emailThemes.length);
     const subjectQualifierIndex = subjectBaseIndex % emailSubjectQualifiers.length;
     const subjectContextIndex = Math.floor(subjectBaseIndex / emailSubjectQualifiers.length) % emailSubjectContexts.length;
-    const subject = `${emailSubjectOpeners[Math.floor(subjectBaseIndex / (emailSubjectQualifiers.length * emailSubjectContexts.length)) % emailSubjectOpeners.length]} ${theme.subject} — ${emailSubjectQualifiers[subjectQualifierIndex]} ${emailSubjectContexts[subjectContextIndex]}`;
+    const subjectStyleIndex = Math.floor(subjectBaseIndex / (emailSubjectQualifiers.length * emailSubjectContexts.length)) % emailSubjectStyles.length;
+    const subject = `${emailSubjectStyles[subjectStyleIndex]} ${theme.subject} — ${emailSubjectQualifiers[subjectQualifierIndex]}, ${emailSubjectContexts[subjectContextIndex]}`;
     const messageBaseIndex = Math.floor(index / emailThemes.length);
     const greeting = emailGreetings[messageBaseIndex % emailGreetings.length];
     const transition = emailMessageTransitions[Math.floor(messageBaseIndex / emailGreetings.length) % emailMessageTransitions.length];
-    const qualifier = emailMessageQualifiers[Math.floor(messageBaseIndex / (emailGreetings.length * emailMessageTransitions.length)) % emailMessageQualifiers.length];
-    const context = emailMessageContexts[Math.floor(messageBaseIndex / (emailGreetings.length * emailMessageTransitions.length * emailMessageQualifiers.length)) % emailMessageContexts.length];
-    const message = `${greeting} ${transition}, ${theme.message} ${qualifier} ${context}.`;
+    const note = emailMessageNotes[Math.floor(messageBaseIndex / (emailGreetings.length * emailMessageTransitions.length)) % emailMessageNotes.length];
+    const closer = emailMessageClosers[Math.floor(messageBaseIndex / (emailGreetings.length * emailMessageTransitions.length * emailMessageNotes.length)) % emailMessageClosers.length];
+    const message = `${greeting} ${transition} ${theme.message} ${note}. ${closer}`;
     return { id: createId("email", index), subject, message };
   });
   return shuffle(pool).slice(0, count);

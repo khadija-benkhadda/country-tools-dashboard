@@ -261,3 +261,10 @@
 - [x] Build semantically linked Subject + Message pairs with no duplicate cleaned values.
 - [x] Ensure successive generations use a different shuffled result set when possible.
 - [x] Validate 1,000–10,000 rows, row pairing, and build before saving.
+
+## Natural Gmail copy
+
+- [x] Audit the current Gmail theme phrasing.
+- [x] Rewrite subjects and messages with natural human wording while keeping one shared idea per pair.
+- [x] Validate uniqueness, row pairing, and variation at 1,000–10,000 results.
+- [x] Run the build, verify the Gmail interface, and save the update.
