@@ -254,3 +254,10 @@
 - [x] Guarantee unique cleaned results at 1,000, 2,000, 5,000, and 10,000 rows.
 - [x] Keep Gmail subject/message pairs unique while preserving row links.
 - [x] Validate all routes and save the no-duplicates version.
+
+## Gmail linked ideas and fresh generations
+
+- [x] Audit subject/message themes and current uniqueness logic.
+- [x] Build semantically linked Subject + Message pairs with no duplicate cleaned values.
+- [x] Ensure successive generations use a different shuffled result set when possible.
+- [x] Validate 1,000–10,000 rows, row pairing, and build before saving.

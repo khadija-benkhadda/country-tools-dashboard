@@ -269,19 +269,34 @@ const documentEditionDescriptors = ["Classic", "Open", "Reader", "Study", "Annot
 const documentFormatDescriptors = ["Archive", "Text", "Print", "Ebook", "Guide", "Reader", "Collection", "Chapter", "Catalogue", "Edition", "Copy", "Volume"];
 const documentContextDescriptors = ["for study", "for reference", "for readers", "for classrooms", "for research", "for libraries", "for teaching", "for discussion", "for projects", "for beginners", "for practice", "for review"];
 
-const emailSubjectParts = {
-  openers: ["Quick follow-up", "A small update", "Checking in", "One thing to share", "A note for you", "Next steps", "Friendly reminder", "Thank you", "Your request", "A helpful update"],
-  topics: ["on your request", "about the details", "for this week", "on the next step", "about our conversation", "for your review", "on the plan", "about the schedule", "for your reference", "before we continue"],
-};
+const emailThemes = [
+  { subject: "the project plan", message: "I’m sharing the latest project plan so we can agree on the next step." },
+  { subject: "the meeting schedule", message: "I’m confirming the meeting schedule and the time that works best for everyone." },
+  { subject: "the document review", message: "I’m following up on the document review and the points that need your attention." },
+  { subject: "the requested information", message: "I’m sending the requested information so you can review the details." },
+  { subject: "the next steps", message: "I’m outlining the next steps so we can keep the work moving." },
+  { subject: "the project update", message: "I’m sharing a project update with the latest progress and open items." },
+  { subject: "the task deadline", message: "I’m checking the task deadline so we can keep the delivery on track." },
+  { subject: "the shared file", message: "I’m following up on the shared file and the changes included in it." },
+  { subject: "the appointment details", message: "I’m confirming the appointment details and the information needed beforehand." },
+  { subject: "the team decision", message: "I’m summarizing the team decision so everyone has the same understanding." },
+  { subject: "the budget details", message: "I’m sharing the budget details so we can review the numbers together." },
+  { subject: "the delivery status", message: "I’m checking the delivery status and will keep you informed of the progress." },
+  { subject: "the event details", message: "I’m sending the event details so the arrangements are clear." },
+  { subject: "the feedback request", message: "I’m asking for your feedback so we can improve the next version." },
+  { subject: "the account request", message: "I’m following up on the account request and the remaining information." },
+  { subject: "the training plan", message: "I’m sharing the training plan so the sessions can be organized smoothly." },
+  { subject: "the application status", message: "I’m checking the application status and the next action required." },
+  { subject: "the travel arrangements", message: "I’m confirming the travel arrangements and the details for the trip." },
+  { subject: "the support request", message: "I’m following up on the support request and the solution being prepared." },
+  { subject: "the final confirmation", message: "I’m sending the final confirmation so we can close this item with confidence." },
+];
+const emailSubjectOpeners = ["Quick follow-up", "A small update", "Checking in", "One thing to share", "A note for you", "Next steps", "Friendly reminder", "Thank you", "Your request", "A helpful update"];
 const emailSubjectQualifiers = ["for review", "for reference", "for approval", "for discussion", "for planning", "for confirmation", "for follow-up", "for your input", "for the record", "for next steps", "for a quick look", "for this project", "for the team", "for today", "for tomorrow", "for the meeting", "for the schedule", "for the update", "for the file", "for your notes"];
 const emailSubjectContexts = ["this morning", "this afternoon", "this evening", "this week", "next week", "when convenient", "before the meeting", "after our call", "as discussed", "as planned", "for the next step", "for a quick check", "for your review", "for the record", "for the current project", "for the latest update", "for the shared file", "for the team", "for today", "for tomorrow"];
-
-const emailMessageParts = {
-  greetings: ["Hi,", "Hello,", "Hope you’re well,", "Good morning,", "Good afternoon,"],
-  bodies: ["Thanks for your message. I wanted to share a quick update.", "I’m following up with the information we discussed.", "Thank you for your time. Here is the next step.", "I appreciate your help and wanted to keep you informed.", "Just sharing a brief note so we can stay aligned.", "Thanks for checking in. I’ll keep this moving.", "I’ve reviewed the details and wanted to update you.", "Here is a short update for your reference."],
-  closers: ["Please let me know what you think.", "I’ll follow up soon.", "Thanks again.", "Let me know if you need anything else.", "Looking forward to your reply.", "Have a great day."],
-};
+const emailGreetings = ["Hi,", "Hello,", "Hope you’re well,", "Good morning,", "Good afternoon,"];
 const emailMessageQualifiers = ["I hope this helps", "I appreciate your time", "I’ll keep you posted", "I’ll share more soon", "I’m available if needed", "I’ll review this again", "I’ll follow up shortly", "I’ll keep this moving", "I’ll send the next update", "I’m happy to clarify", "I’ll confirm the details", "I’ll stay in touch", "I’ll take care of it", "I’ll check and respond", "I’ll keep the record updated", "I’ll make a note of this", "I’ll coordinate the next step", "I’ll return with an update", "I’ll review the file", "I’ll follow through"];
+const emailMessageTransitions = ["As a quick follow-up", "As a brief note", "For clarity", "To keep things moving", "As planned", "For your convenience", "As a helpful update", "To confirm the details", "For the next step", "As requested"];
 const emailMessageContexts = ["when convenient", "for your reference", "as discussed", "before we continue", "for the next step", "at your convenience", "for a quick review", "as a small update", "for today", "for this week", "with appreciation", "before the meeting", "after our call", "for the project", "for the team", "for the record", "during the next step", "when you have time", "for follow-up", "as planned"];
 
 const uniqueNaturalVariant = (base: string, phrases: string[], seen: Set<string>) => {
@@ -302,33 +317,22 @@ const uniqueNaturalVariant = (base: string, phrases: string[], seen: Set<string>
 };
 
 export const generateEmailPairs = (count: number): EmailPair[] => {
-  const subjectBaseCount = emailSubjectParts.openers.length * emailSubjectParts.topics.length;
-  const messageBaseCount = emailMessageParts.greetings.length * emailMessageParts.bodies.length * emailMessageParts.closers.length;
-  const subjectVariantCount = subjectBaseCount * emailSubjectQualifiers.length * emailSubjectContexts.length;
-  const messageVariantCount = messageBaseCount * emailMessageQualifiers.length * emailMessageContexts.length;
-  const poolSize = Math.max(subjectVariantCount, messageVariantCount);
-  const seenSubjects = new Set<string>();
-  const seenMessages = new Set<string>();
-  const subjectPhrases = [...emailSubjectQualifiers, ...emailSubjectContexts];
-  const messagePhrases = [...emailMessageQualifiers, ...emailMessageContexts];
+  const poolSize = emailThemes.length * emailSubjectOpeners.length * emailSubjectQualifiers.length * emailSubjectContexts.length;
   const pool = Array.from({ length: poolSize }, (_, index) => {
-    const subjectBaseIndex = index % subjectBaseCount;
-    const subjectVariantIndex = Math.floor(index / subjectBaseCount);
-    const subjectBase = `${emailSubjectParts.openers[Math.floor(subjectBaseIndex / emailSubjectParts.topics.length) % emailSubjectParts.openers.length]} ${emailSubjectParts.topics[subjectBaseIndex % emailSubjectParts.topics.length]} — ${emailSubjectQualifiers[subjectVariantIndex % emailSubjectQualifiers.length]} ${emailSubjectContexts[Math.floor(subjectVariantIndex / emailSubjectQualifiers.length) % emailSubjectContexts.length]}`;
-    const subject = uniqueNaturalVariant(subjectBase, subjectPhrases, seenSubjects);
-    const messageBaseIndex = index % messageBaseCount;
-    const messageVariantIndex = Math.floor(index / messageBaseCount);
-    const greeting = emailMessageParts.greetings[Math.floor(messageBaseIndex / (emailMessageParts.bodies.length * emailMessageParts.closers.length)) % emailMessageParts.greetings.length];
-    const body = emailMessageParts.bodies[Math.floor(messageBaseIndex / emailMessageParts.closers.length) % emailMessageParts.bodies.length];
-    const closer = emailMessageParts.closers[messageBaseIndex % emailMessageParts.closers.length];
-    const qualifier = emailMessageQualifiers[messageVariantIndex % emailMessageQualifiers.length];
-    const context = emailMessageContexts[Math.floor(messageVariantIndex / emailMessageQualifiers.length) % emailMessageContexts.length];
-    const normalizedBody = `${greeting} ${body} ${closer}`.replace(/\s+/g, " ").trim();
-    const message = uniqueNaturalVariant(`${normalizedBody} ${qualifier} ${context}.`, messagePhrases, seenMessages);
+    const theme = emailThemes[index % emailThemes.length];
+    const subjectBaseIndex = Math.floor(index / emailThemes.length);
+    const subjectQualifierIndex = subjectBaseIndex % emailSubjectQualifiers.length;
+    const subjectContextIndex = Math.floor(subjectBaseIndex / emailSubjectQualifiers.length) % emailSubjectContexts.length;
+    const subject = `${emailSubjectOpeners[Math.floor(subjectBaseIndex / (emailSubjectQualifiers.length * emailSubjectContexts.length)) % emailSubjectOpeners.length]} ${theme.subject} — ${emailSubjectQualifiers[subjectQualifierIndex]} ${emailSubjectContexts[subjectContextIndex]}`;
+    const messageBaseIndex = Math.floor(index / emailThemes.length);
+    const greeting = emailGreetings[messageBaseIndex % emailGreetings.length];
+    const transition = emailMessageTransitions[Math.floor(messageBaseIndex / emailGreetings.length) % emailMessageTransitions.length];
+    const qualifier = emailMessageQualifiers[Math.floor(messageBaseIndex / (emailGreetings.length * emailMessageTransitions.length)) % emailMessageQualifiers.length];
+    const context = emailMessageContexts[Math.floor(messageBaseIndex / (emailGreetings.length * emailMessageTransitions.length * emailMessageQualifiers.length)) % emailMessageContexts.length];
+    const message = `${greeting} ${transition}, ${theme.message} ${qualifier} ${context}.`;
     return { id: createId("email", index), subject, message };
   });
-  const shuffled = shuffle(pool);
-  return Array.from({ length: count }, (_, index) => shuffled[index]);
+  return shuffle(pool).slice(0, count);
 };
 
 export const generatePdfQueries = (topic: string, country: CountryProfile, contentType: string, language: string, count: number, startIndex = 0): DocumentQuery[] => {
