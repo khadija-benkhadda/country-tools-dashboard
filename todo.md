@@ -281,3 +281,9 @@
 - [x] Ensure 1,000, 2,000, 5,000, and 10,000 generate exactly the selected number.
 - [x] Confirm Copy all results and Download results use the full selected collection.
 - [x] Validate the preview and save the correction.
+
+## Places primary text copy
+
+- [x] Restore a clear separator between the main Places query and its search details.
+- [x] Copy and download only the main text before the separator.
+- [x] Validate the red-box example format and the production build.

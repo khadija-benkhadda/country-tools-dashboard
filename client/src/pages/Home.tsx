@@ -417,7 +417,7 @@ export default function Home() {
     localStorage.setItem("country-tools-countries", JSON.stringify(selectedCountries.map((profile) => profile.code)));
     setTrends(generateTrendsAcrossSelections(parseResultCount(trendCount)));
     setAddresses(generateUniqueAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count), (address) => cleanAddressResult(address, address.country)));
-    setPlaces(generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => cleanPlaceResult(place, place.country)));
+    setPlaces(generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => place.query));
     setDocuments(generateUniqueDocuments(parseResultCount(documentCount)));
     setLastAction(`${selectedCountries.length} countr${selectedCountries.length === 1 ? "y" : "ies"} context loaded`);
   }, [selectedCountries, selectedDocumentTypes, selectedDocumentLanguages]);
@@ -450,7 +450,7 @@ export default function Home() {
   };
 
   const generatePlacesNow = () => {
-    setPlaces(generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => cleanPlaceResult(place, place.country)));
+    setPlaces(generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => place.query));
     setLastAction("Map queries randomized");
     toast.success("Places set refreshed");
   };
@@ -532,7 +532,7 @@ export default function Home() {
     setSelectedCountries([nextCountry]);
     const nextTrends = generateTrendIdeas(nextCountry, trendCategory, parseResultCount(trendCount));
     const nextAddresses = generateUniqueAcrossCountries(parseResultCount(addressCount), (profile, count) => generateAddresses(profile, count), (address) => cleanAddressResult(address, address.country), [nextCountry]);
-    const nextPlaces = generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => cleanPlaceResult(place, place.country), [nextCountry]);
+    const nextPlaces = generateUniqueAcrossCountries(parseResultCount(placeCount), (profile, count) => generateMapQueries(profile, placeType, count), (place) => place.query, [nextCountry]);
     const nextDocuments = generateUniqueDocuments(parseResultCount(documentCount), [nextCountry]);
     setTrends(nextTrends);
     setAddresses(nextAddresses);

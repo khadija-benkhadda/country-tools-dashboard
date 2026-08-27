@@ -201,7 +201,7 @@ export const generateMapQueries = (country: CountryProfile, placeType: string, c
       city: base.city,
       region: base.region,
       country: country.name,
-      query: `${pluralizePlaceType(base.type)} in ${base.city}, ${country.name} ${area}, ${purpose}, ${attribute}`,
+      query: `${pluralizePlaceType(base.type)} in ${base.city}, ${country.name} — ${area}, ${purpose}, ${attribute}`,
     };
   });
 };
