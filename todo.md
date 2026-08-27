@@ -268,3 +268,9 @@
 - [x] Rewrite subjects and messages with natural human wording while keeping one shared idea per pair.
 - [x] Validate uniqueness, row pairing, and variation at 1,000–10,000 results.
 - [x] Run the build, verify the Gmail interface, and save the update.
+
+## Places main query copy
+
+- [x] Audit the current Places copy/download cleaner.
+- [x] Copy and download only the main query before the detail separator.
+- [x] Validate the example format and build the update.
