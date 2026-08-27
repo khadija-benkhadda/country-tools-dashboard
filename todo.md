@@ -274,3 +274,10 @@
 - [x] Audit the current Places copy/download cleaner.
 - [x] Copy and download only the main query before the detail separator.
 - [x] Validate the example format and build the update.
+
+## Places selected result count
+
+- [x] Audit the selected query count and full Places collection length.
+- [x] Ensure 1,000, 2,000, 5,000, and 10,000 generate exactly the selected number.
+- [x] Confirm Copy all results and Download results use the full selected collection.
+- [x] Validate the preview and save the correction.

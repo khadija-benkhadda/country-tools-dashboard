@@ -50,6 +50,12 @@ const placeTypes = ["Restaurant", "Coffee Shop", "Bookstore", "Library", "Museum
 const placeAreas = ["near the main square", "near the public library", "near the old town", "near the river", "near the university", "near the market", "near the museum", "near the park", "near the waterfront", "near the station", "near the town hall", "near the arts district"];
 const placePurposes = ["for a quick visit", "for families", "for remote work", "for a weekend plan", "for local events", "for an evening out", "for a quiet visit", "for students", "for business meetings", "for visitors", "for a group booking", "for a local experience"];
 const placeAttributes = ["with parking", "with outdoor seating", "with accessible entry", "with public transport", "with study space", "with local products", "with guided visits", "open late", "with a quiet room", "with family facilities", "with takeaway options", "with visitor information"];
+
+const pluralizePlaceType = (type: string) => {
+  if (type.endsWith("y")) return `${type.slice(0, -1)}ies`;
+  if (type.endsWith("s")) return type;
+  return `${type}s`;
+};
 const contentSources: Record<string, string> = {
   "Public Domain Book": "archive.org / Project Gutenberg",
   "Government Document": "official government portal",
@@ -195,7 +201,7 @@ export const generateMapQueries = (country: CountryProfile, placeType: string, c
       city: base.city,
       region: base.region,
       country: country.name,
-      query: `${base.type}s in ${base.city}, ${country.name} — ${area}, ${purpose}, ${attribute}`,
+      query: `${pluralizePlaceType(base.type)} in ${base.city}, ${country.name} ${area}, ${purpose}, ${attribute}`,
     };
   });
 };
