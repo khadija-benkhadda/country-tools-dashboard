@@ -293,3 +293,9 @@
 - [x] Locate the global Randomize all button and verify Random defaults.
 - [x] Remove only the global button.
 - [x] Validate the unchanged controls and production build.
+
+## Push version without Randomize all
+
+- [ ] Verify the local branch and GitHub remote.
+- [ ] Commit any remaining local changes.
+- [ ] Push `main` and confirm the remote commit.
