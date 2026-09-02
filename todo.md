@@ -296,6 +296,59 @@
 
 ## Push version without Randomize all
 
-- [ ] Verify the local branch and GitHub remote.
-- [ ] Commit any remaining local changes.
-- [ ] Push `main` and confirm the remote commit.
+- [x] Verify the local branch and GitHub remote.
+- [x] Commit any remaining local changes.
+- [x] Push `main` and confirm the remote commit.
+
+## Data source mapping
+
+- [x] Inventory the displayed fields in Trends, Addresses, Places, PDF & Book, Replies, and Gmail.
+- [x] Map each field to its source dataset, generator, state, and render location.
+- [x] Confirm that no live API or backend currently loads these values.
+- [x] Deliver a concise source map with file and function references.
+
+## Migration vers les données réelles
+
+- [x] Auditer les API publiques et fiables disponibles pour chaque interface.
+- [x] Vérifier les contraintes CORS, quotas, fraîcheur, licences et clés API.
+- [x] Définir une architecture de chargement live sans exposer de secrets côté frontend.
+- [x] Remplacer les générateurs synthétiques par des adaptateurs de sources réelles.
+- [x] Ajouter le rafraîchissement à l’ouverture, au rechargement et à chaque génération.
+- [x] Afficher la source, l’endpoint et l’horodatage des données dans l’interface.
+- [x] Tester les six outils, les états d’erreur, les quotas et la déduplication.
+- [x] Mettre à jour `data-sources.md` avec la cartographie API complète.
+- [x] Créer un checkpoint après validation.
+
+## Décision confirmée — architecture live
+
+- [x] Mettre à niveau le projet pour disposer d’un serveur sécurisé et de routes proxy API.
+- [x] Utiliser des sources publiques réelles pour livres, géographie et lieux.
+- [x] Intégrer une source de tendances autorisée ou documenter explicitement l’absence d’accès Google Trends Alpha.
+- [x] Marquer Replies et Gmail comme contenu généré, sans le présenter comme donnée factuelle.
+
+## Corrections de validation live
+
+- [x] Limiter la portée de la migration live aux quatre outils factuels et documenter Replies/Gmail comme texte généré.
+- [x] Afficher l’endpoint complet et l’horodatage pour chaque source live.
+- [x] Ajouter des états de chargement, erreur, quota et absence de résultats dans les quatre outils live.
+- [x] Ajouter des tests de déduplication et de limitation des résultats live.
+
+## Derniers contrôles live
+
+- [x] Afficher un état vide explicite lorsque chaque source live répond sans résultat.
+- [x] Distinguer visuellement une limite/quota API d’une erreur générique.
+- [x] Tester la limite à 100 résultats et le dédoublonnage des documents live.
+
+## Robustesse fournisseurs live
+
+- [x] Traiter les statuts quota/erreur renvoyés dans un JSON HTTP 200 par les fournisseurs live.
+- [x] Tester la déduplication spécifique des résultats Open Library.
+
+## Statuts Google Maps
+
+- [x] Appliquer la validation des statuts JSON Google Maps à Addresses et Places.
+- [x] Tester les réponses HTTP 200 Google Maps contenant un quota ou une erreur fournisseur.
+
+## Tests adaptateurs Maps
+
+- [x] Tester directement `fetchAddresses()` et `fetchPlaces()` avec des payloads HTTP 200 de quota/erreur Google Maps.
