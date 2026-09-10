@@ -6,7 +6,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { fetchAddresses, fetchDocuments, fetchPlaces, fetchTrends, generatedTextSource } from "./liveData";
 
 const requestSchema = z.object({
-  countryCode: z.string().min(2).max(3).optional(),
+  countryCode: z.string().min(2).max(80).optional(),
   countryName: z.string().min(1).max(120).optional(),
   count: z.number().int().min(1).max(1000).default(100),
   category: z.string().max(80).default("All"),

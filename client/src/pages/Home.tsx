@@ -46,6 +46,7 @@ import {
   type SyntheticAddress,
   type TrendIdea,
 } from "@/lib/generators";
+import { makeDataQuality, normalizeForDeduplication, uniqueBy, type DataQuality } from "@shared/types";
 
 const navItems = [
   { id: "trends", href: "/trends", label: "Trends Explorer", icon: Flame },
@@ -63,7 +64,7 @@ const parseResultCount = (value: string) => Number(value.replaceAll(",", ""));
 const isLiveQuotaError = (error: unknown) => typeof error === "object" && error !== null && "message" in error && String((error as { message?: unknown }).message).includes("LIVE_QUOTA_EXCEEDED");
 const trendDistinctifiers = ["ideas", "guide", "tips", "planning", "updates", "options", "resources", "prices", "benefits", "comparison", "basics", "checklist", "examples", "services", "schedule", "information", "support", "online", "local", "today", "new", "best", "simple", "public", "free", "advanced", "nearby", "learning", "community", "seasonal", "practical", "official", "quick", "smart", "daily", "weekly", "popular", "current", "trusted", "useful", "beginner", "professional", "home", "work", "family", "student", "business", "travel", "health", "digital", "modern"];
 const replyDistinctifiers = ["when convenient", "for your records", "as discussed", "with thanks", "for the next step", "at your convenience", "for a quick review", "as a small update", "for today", "for this week", "with appreciation", "for your reference", "before we continue", "when you have time", "for the follow-up", "as planned", "with a clear note", "for the record", "in the meantime", "for the next update"];
-const normalizeResult = (value: string) => value.trim().toLocaleLowerCase();
+const normalizeResult = normalizeForDeduplication;
 const formatCount = (value: number) => value.toLocaleString("en-US");
 
 function copyToClipboard(text: string, label = "Copied to clipboard") {
@@ -253,6 +254,16 @@ function ToolCard({ children, className = "", id }: { children: React.ReactNode;
   return <section id={id} className={cx("tool-card", className)}>{children}</section>;
 }
 
+function QualityCounters({ quality }: { quality: DataQuality }) {
+  return <div className="quality-counters" aria-label="Data quality counters">
+    <span><strong>Requested</strong> {formatCount(quality.requested)}</span>
+    <span><strong>Retrieved</strong> {formatCount(quality.retrieved)}</span>
+    <span><strong>Unique</strong> {formatCount(quality.unique)}</span>
+    <span><strong>Displayed</strong> {formatCount(quality.displayed)}</span>
+    <span className={cx("quality-status", quality.status !== "complete" && "quality-status--partial")}>{quality.status === "complete" ? "Complete" : quality.status === "partial" ? "Partial: source exhausted" : "No validated data"}</span>
+  </div>;
+}
+
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -279,13 +290,16 @@ export default function Home() {
   const [trendCategory, setTrendCategory] = useState("All");
   const [trendCount, setTrendCount] = useState("100");
   const [trends, setTrends] = useState<TrendIdea[]>([]);
+  const [trendQuality, setTrendQuality] = useState<DataQuality>(() => makeDataQuality(100, 0, 0));
 
   const [addressCount, setAddressCount] = useState("100");
   const [addresses, setAddresses] = useState<SyntheticAddress[]>([]);
+  const [addressQuality, setAddressQuality] = useState<DataQuality>(() => makeDataQuality(100, 0, 0));
 
   const [placeType, setPlaceType] = useState("Random");
   const [placeCount, setPlaceCount] = useState("100");
   const [places, setPlaces] = useState<PlaceQuery[]>([]);
+  const [placeQuality, setPlaceQuality] = useState<DataQuality>(() => makeDataQuality(100, 0, 0));
 
   const [selectedDocumentTypes, setSelectedDocumentTypes] = useState<string[]>(() => {
     const stored = localStorage.getItem("country-tools-document-types");
@@ -314,6 +328,7 @@ export default function Home() {
   const [documentCount, setDocumentCount] = useState("100");
   const [topic, setTopic] = useState("marketing");
   const [documents, setDocuments] = useState<DocumentQuery[]>([]);
+  const [documentQuality, setDocumentQuality] = useState<DataQuality>(() => makeDataQuality(100, 0, 0));
   const [emailCount, setEmailCount] = useState("1,000");
   const [emailPairs, setEmailPairs] = useState<EmailPair[]>(() => generateEmailPairs(defaultToolCounts.documents));
   const [selectedReplyTones, setSelectedReplyTones] = useState<string[]>(() => {
@@ -330,6 +345,8 @@ export default function Home() {
   });
   const [replyCount, setReplyCount] = useState("1,000");
   const [generatedReplies, setGeneratedReplies] = useState<string[]>([]);
+  const [replyQuality, setReplyQuality] = useState<DataQuality>(() => makeDataQuality(1000, 0, 0));
+  const [emailQuality, setEmailQuality] = useState<DataQuality>(() => makeDataQuality(1000, defaultToolCounts.documents, defaultToolCounts.documents));
   const liveCount = Math.min(parseResultCount(trendCount), 100);
   const liveAddressCount = Math.min(parseResultCount(addressCount), 100);
   const livePlaceCount = Math.min(parseResultCount(placeCount), 100);
@@ -426,16 +443,16 @@ export default function Home() {
   }, [selectedReplyTones]);
 
   useEffect(() => {
-    if (liveTrendsQuery.data) setTrends(liveTrendsQuery.data as TrendIdea[]);
+    if (liveTrendsQuery.data) { setTrends(liveTrendsQuery.data.rows as TrendIdea[]); setTrendQuality(liveTrendsQuery.data.quality); }
   }, [liveTrendsQuery.data]);
   useEffect(() => {
-    if (liveAddressesQuery.data) setAddresses(liveAddressesQuery.data as SyntheticAddress[]);
+    if (liveAddressesQuery.data) { setAddresses(liveAddressesQuery.data.rows as SyntheticAddress[]); setAddressQuality(liveAddressesQuery.data.quality); }
   }, [liveAddressesQuery.data]);
   useEffect(() => {
-    if (livePlacesQuery.data) setPlaces(livePlacesQuery.data as PlaceQuery[]);
+    if (livePlacesQuery.data) { setPlaces(livePlacesQuery.data.rows as PlaceQuery[]); setPlaceQuality(livePlacesQuery.data.quality); }
   }, [livePlacesQuery.data]);
   useEffect(() => {
-    if (liveDocumentsQuery.data) setDocuments(liveDocumentsQuery.data as DocumentQuery[]);
+    if (liveDocumentsQuery.data) { setDocuments(liveDocumentsQuery.data.rows as DocumentQuery[]); setDocumentQuality(liveDocumentsQuery.data.quality); }
   }, [liveDocumentsQuery.data]);
 
   useEffect(() => {
@@ -460,28 +477,28 @@ export default function Home() {
 
   const generateTrendsNow = async () => {
     const result = await liveTrendsQuery.refetch();
-    if (result.data) setTrends(result.data as TrendIdea[]);
+    if (result.data) { setTrends(result.data.rows as TrendIdea[]); setTrendQuality(result.data.quality); }
     setLastAction(`Live ${trendCategory.toLowerCase()} pulse loaded`);
     toast.success("Live trends refreshed");
   };
 
   const generateAddressesNow = async () => {
     const result = await liveAddressesQuery.refetch();
-    if (result.data) setAddresses(result.data as SyntheticAddress[]);
+    if (result.data) { setAddresses(result.data.rows as SyntheticAddress[]); setAddressQuality(result.data.quality); }
     setLastAction("Live addresses loaded");
     toast.success("Live addresses refreshed");
   };
 
   const generatePlacesNow = async () => {
     const result = await livePlacesQuery.refetch();
-    if (result.data) setPlaces(result.data as PlaceQuery[]);
+    if (result.data) { setPlaces(result.data.rows as PlaceQuery[]); setPlaceQuality(result.data.quality); }
     setLastAction("Live places loaded");
     toast.success("Live places refreshed");
   };
 
   const generateDocumentsNow = async () => {
     const result = await liveDocumentsQuery.refetch();
-    if (result.data) setDocuments(result.data as DocumentQuery[]);
+    if (result.data) { setDocuments(result.data.rows as DocumentQuery[]); setDocumentQuality(result.data.quality); }
     setLastAction("Live library records loaded");
     toast.success("Live book records refreshed");
   };
@@ -518,23 +535,8 @@ export default function Home() {
     const uniquePool = Array.from(new Set(pool));
     const count = parseResultCount(replyCount);
     const shuffled = uniquePool.sort(() => Math.random() - 0.5);
-    const seen = new Set<string>();
-    const nextReplies: string[] = [];
-    Array.from({ length: count }, (_, index) => shuffled[index % shuffled.length]).forEach((baseReply, index) => {
-      const normalizedBase = normalizeResult(baseReply);
-      let reply = baseReply;
-      let variantIndex = 0;
-      while (seen.has(normalizeResult(reply))) {
-        const first = replyDistinctifiers[(index + variantIndex) % replyDistinctifiers.length];
-        const second = replyDistinctifiers[Math.floor((index + variantIndex) / replyDistinctifiers.length) % replyDistinctifiers.length];
-        const cleanReply = baseReply.replace(/[.!?]+\s*$/, "");
-        reply = `${cleanReply}. ${first}, ${second}.`;
-        variantIndex += 1;
-      }
-      if (seen.has(normalizedBase)) reply = `${baseReply.replace(/[.!?]+\s*$/, "")}. ${replyDistinctifiers[index % replyDistinctifiers.length]}.`;
-      seen.add(normalizeResult(reply));
-      nextReplies.push(reply);
-    });
+    const nextReplies = uniqueBy(shuffled, (reply) => normalizeResult(reply)).slice(0, count);
+    setReplyQuality(makeDataQuality(count, uniquePool.length, nextReplies.length));
     setGeneratedReplies(nextReplies);
     setLastAction(`${count.toLocaleString()} unique short replies generated`);
     toast.success(`${count.toLocaleString()} unique replies ready`);
@@ -546,7 +548,9 @@ export default function Home() {
 
   const generateEmailPairsNow = () => {
     const count = parseResultCount(emailCount);
-    setEmailPairs(generateEmailPairs(count));
+    const pairs = generateEmailPairs(count);
+    setEmailPairs(pairs);
+    setEmailQuality(makeDataQuality(count, pairs.length, uniqueBy(pairs, (pair) => `${pair.subject}\n${pair.message}`).length));
     setLastAction(`${count.toLocaleString()} Gmail subject/message pairs generated`);
     toast.success(`${count.toLocaleString()} email pairs ready`);
   };
@@ -593,7 +597,7 @@ export default function Home() {
           <div className={cx("tool-grid", !isOverview && "tool-grid--single")}>
             {activeTool === "replies" && <ToolCard id="replies" className="tool-card--replies">
               <SectionIntro index="05" eyebrow="Message utility" title="Short Reply Generator" description="Generate a simple, short response instantly." icon={MessageCircle} note="FRONTEND ONLY" />
-              <div className="notice-banner"><MessageCircle size={16} /><span><strong>Generated text source</strong> — {generatedTextSourceQuery.data?.source ?? "Local template generator"}. This is generated content, not factual external data.</span></div><div className="reply-composer">
+              <div className="notice-banner"><MessageCircle size={16} /><span><strong>Generated text source</strong> — {generatedTextSourceQuery.data?.source ?? "Local template generator"}. This is generated content, not factual external data.</span></div><QualityCounters quality={replyQuality} /><div className="reply-composer">
                 <div className="reply-direct-note"><MessageCircle size={18} /><div><strong>Ready to reply?</strong><p>Choose one or more tones and generate a large set of short messages instantly.</p></div></div>
                 <div className="reply-actions"><MultiToneSelect selectedTones={selectedReplyTones} onChange={setSelectedReplyTones} /><SelectControl label="Results" value={replyCount} onChange={setReplyCount} options={resultCountOptions} /><button className="primary-button" onClick={generateReplyNow} type="button"><MessageCircle size={15} /> Generate replies</button><button className="secondary-button" onClick={() => copyToClipboard(generatedReplies.map(cleanReplyResult).join("\n"), "Copied")} disabled={!generatedReplies.length} type="button"><Clipboard size={15} /> Copy all replies</button><button className="secondary-button" onClick={() => downloadResults(generatedReplies.map(cleanReplyResult).join("\n"), "short-replies.txt")} disabled={!generatedReplies.length} type="button"><Download size={15} /> Download results</button><button className="secondary-button" onClick={clearReply} type="button">Clear</button></div>
               </div>
@@ -604,14 +608,14 @@ export default function Home() {
 
             {activeTool === "emails" && <ToolCard id="emails" className="tool-card--emails">
               <SectionIntro index="06" eyebrow="Email utility" title="Gmail Subject + Message Generator" description="Generate random email subjects and messages with one-to-one row pairing." icon={Mail} note="FRONTEND ONLY" />
-              <div className="notice-banner"><Mail size={16} /><span><strong>Generated text source</strong> — {generatedTextSourceQuery.data?.source ?? "Local template generator"}. This is generated content, not factual external data.</span></div><div className="reply-composer email-composer"><div className="reply-direct-note"><Mail size={18} /><div><strong>Paired results</strong><p>Subject 1 always matches Message 1, Subject 2 matches Message 2, and so on.</p></div></div><div className="reply-actions"><SelectControl label="Pairs" value={emailCount} onChange={setEmailCount} options={resultCountOptions} /><button className="primary-button" onClick={generateEmailPairsNow} type="button"><Mail size={15} /> Generate pairs</button><div className="email-copy-group"><span>Copy subjects</span><button className="secondary-button" onClick={() => copyToClipboard(emailPairs.map((pair) => cleanEmailSubject(pair.subject)).join("\n"), "Copied")} type="button"><Clipboard size={15} /> Copy all subjects</button></div><div className="email-copy-group"><span>Copy messages</span><button className="secondary-button" onClick={() => copyToClipboard(emailPairs.map((pair) => cleanEmailMessage(pair.message)).join("\n"), "Copied")} type="button"><Clipboard size={15} /> Copy all messages</button></div><button className="secondary-button" onClick={() => downloadResults(emailPairs.map((pair) => `${cleanEmailSubject(pair.subject)}\t${cleanEmailMessage(pair.message)}`).join("\n"), "gmail-subject-message-results.txt")} disabled={!emailPairs.length} type="button"><Download size={15} /> Download results</button></div></div>
+              <div className="notice-banner"><Mail size={16} /><span><strong>Generated text source</strong> — {generatedTextSourceQuery.data?.source ?? "Local template generator"}. This is generated content, not factual external data.</span></div><QualityCounters quality={emailQuality} /><div className="reply-composer email-composer"><div className="reply-direct-note"><Mail size={18} /><div><strong>Paired results</strong><p>Subject 1 always matches Message 1, Subject 2 matches Message 2, and so on.</p></div></div><div className="reply-actions"><SelectControl label="Pairs" value={emailCount} onChange={setEmailCount} options={resultCountOptions} /><button className="primary-button" onClick={generateEmailPairsNow} type="button"><Mail size={15} /> Generate pairs</button><div className="email-copy-group"><span>Copy subjects</span><button className="secondary-button" onClick={() => copyToClipboard(emailPairs.map((pair) => cleanEmailSubject(pair.subject)).join("\n"), "Copied")} type="button"><Clipboard size={15} /> Copy all subjects</button></div><div className="email-copy-group"><span>Copy messages</span><button className="secondary-button" onClick={() => copyToClipboard(emailPairs.map((pair) => cleanEmailMessage(pair.message)).join("\n"), "Copied")} type="button"><Clipboard size={15} /> Copy all messages</button></div><button className="secondary-button" onClick={() => downloadResults(emailPairs.map((pair) => `${cleanEmailSubject(pair.subject)}\t${cleanEmailMessage(pair.message)}`).join("\n"), "gmail-subject-message-results.txt")} disabled={!emailPairs.length} type="button"><Download size={15} /> Download results</button></div></div>
               <div className="email-pair-list">{emailPairs.map((pair, index) => <article className="email-pair-row" key={pair.id}><span className="email-pair-row__index">{String(index + 1).padStart(4, "0")}</span><div><strong>Subject: {pair.subject}</strong><p>Message: {pair.message}</p></div></article>)}</div><div className="preview-note">Displaying {emailPairs.length.toLocaleString()} paired results. Each subject and message share the same row.</div>
             </ToolCard>}
 
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">
               <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Generate keyword ideas and validate them in Google Trends over the last 7 days." icon={Flame} note="LIVE RSS DATA" />
               <div className="tool-controls tool-controls--trends"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={liveResultCountOptions} /><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyToClipboard(trends.map((trend) => trend.keyword).join("\n"), "Copied")} disabled={!trends.length} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(trends.map((trend) => trend.keyword).join("\n"), "trends-results.txt")} disabled={!trends.length} type="button"><Download size={15} /> Download results</button></div>
-              <div className="notice-banner"><Lightbulb size={16} /><span><strong>{liveTrendsQuery.isLoading ? "Loading live source" : liveTrendsQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveTrendsQuery.error ? (isLiveQuotaError(liveTrendsQuery.error) ? "Google Trends RSS rate limit reached; retry later." : "Google Trends RSS returned an error; no synthetic fallback is used.") : liveTrendsQuery.data?.[0]?.source.source ?? "Waiting for Google Trends RSS"}. {liveTrendsQuery.data?.[0]?.source.endpoint ? `Endpoint: ${liveTrendsQuery.data[0].source.endpoint}. ` : ""}{liveTrendsQuery.data?.[0]?.source.fetchedAt ? `Fetched ${new Date(liveTrendsQuery.data[0].source.fetchedAt).toLocaleString()}.` : ""}</span></div>
+              <div className="notice-banner"><Lightbulb size={16} /><span><strong>{liveTrendsQuery.isLoading ? "Loading live source" : liveTrendsQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveTrendsQuery.error ? (isLiveQuotaError(liveTrendsQuery.error) ? "Google Trends RSS rate limit reached; retry later." : "Google Trends RSS returned an error; no synthetic fallback is used.") : liveTrendsQuery.data?.source?.source ?? "Waiting for Google Trends RSS"}. {liveTrendsQuery.data?.source?.endpoint ? `Endpoint: ${liveTrendsQuery.data.source.endpoint}. ` : ""}{liveTrendsQuery.data?.source?.fetchedAt ? `Fetched ${new Date(liveTrendsQuery.data.source.fetchedAt).toLocaleString()}.` : ""}</span></div><QualityCounters quality={trendQuality} />
               {!liveTrendsQuery.isLoading && !liveTrendsQuery.error && trends.length === 0 && <div className="preview-note">No live trend records were returned for this country and filter.</div>}{trendPreview.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Google Trends</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><a className="trend-keyword-link" href={openGoogleTrends(trend.searchQuery)} target="_blank" rel="noreferrer">{trend.keyword}</a></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><a className="trend-validate-link" href={openGoogleTrends(trend.searchQuery)} target="_blank" rel="noreferrer">Last 7 days ↗</a></div>)}</div>}
               {trends.length > trendPreview.length && <div className="preview-note">Previewing {trendPreview.length.toLocaleString()} of {trends.length.toLocaleString()} live trend records. The full collection stays in memory.</div>}
             </ToolCard>}
@@ -619,19 +623,19 @@ export default function Home() {
             {(isOverview || activeTool === "addresses") && <ToolCard id="addresses" className="tool-card--address">
               <SectionIntro index="02" eyebrow="Location seed" title="Address Generator" description="Load address records from the live maps source." icon={MapPin} note="LIVE DATA" />
               <div className="tool-controls tool-controls--two"><SelectControl label="Addresses" value={addressCount} onChange={setAddressCount} options={liveResultCountOptions} /><button className="primary-button" onClick={generateAddressesNow} type="button"><RefreshCw size={15} /> Load live addresses</button><button className="secondary-button" onClick={() => copyAllResults(addresses, (address) => cleanAddressResult(address, country.name), country.name)} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(addresses.map((address) => cleanAddressResult(address, country.name)).join("\n"), "address-results.txt")} disabled={!addresses.length} type="button"><Download size={15} /> Download results</button></div>
-              <div className="notice-banner notice-banner--warm"><MapPin size={16} /><span><strong>{liveAddressesQuery.isLoading ? "Loading live source" : liveAddressesQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveAddressesQuery.error ? (isLiveQuotaError(liveAddressesQuery.error) ? "Google Maps quota reached; retry later." : "Google Maps returned an error; no synthetic fallback is used.") : liveAddressesQuery.data?.[0]?.source.source ?? "Waiting for Google Maps Places"}. {liveAddressesQuery.data?.[0]?.source.endpoint ? `Endpoint: ${liveAddressesQuery.data[0].source.endpoint}. ` : ""}{liveAddressesQuery.data?.[0]?.source.fetchedAt ? `Fetched ${new Date(liveAddressesQuery.data[0].source.fetchedAt).toLocaleString()}.` : ""}</span></div>
-              {!liveAddressesQuery.isLoading && !liveAddressesQuery.error && addresses.length === 0 && <div className="preview-note">No live address records were returned for this country.</div>}<div className="address-list">{addressPreview.map((address) => <article className="address-row" key={address.id}><div className="address-pin"><MapPin size={15} /></div><div className="address-copy"><strong>{address.houseNumber} {address.street} Street</strong><span>{address.city}, {address.region} {address.postalCode}</span><small>{address.country}</small></div></article>)}</div><div className="preview-note">Previewing {addressPreview.length.toLocaleString()} of {addresses.length.toLocaleString()} live address records. The full collection stays available for future export workflows.</div>
+              <div className="notice-banner notice-banner--warm"><MapPin size={16} /><span><strong>{liveAddressesQuery.isLoading ? "Loading live source" : liveAddressesQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveAddressesQuery.error ? (isLiveQuotaError(liveAddressesQuery.error) ? "Google Maps quota reached; retry later." : "Google Maps returned an error; no synthetic fallback is used.") : liveAddressesQuery.data?.source?.source ?? "Waiting for Google Maps Places"}. {liveAddressesQuery.data?.source?.endpoint ? `Endpoint: ${liveAddressesQuery.data.source.endpoint}. ` : ""}{liveAddressesQuery.data?.source?.fetchedAt ? `Fetched ${new Date(liveAddressesQuery.data.source.fetchedAt).toLocaleString()}.` : ""}</span></div><QualityCounters quality={addressQuality} />
+              {!liveAddressesQuery.isLoading && !liveAddressesQuery.error && addresses.length === 0 && <div className="preview-note">No live address records were returned for this country.</div>}<div className="address-list">{addressPreview.map((address) => <article className="address-row" key={address.id}><div className="address-pin"><MapPin size={15} /></div><div className="address-copy"><strong>{address.formatted}</strong><small>{address.country}</small></div></article>)}</div><div className="preview-note">Previewing {addressPreview.length.toLocaleString()} of {addresses.length.toLocaleString()} live address records. The full collection stays available for future export workflows.</div>
             </ToolCard>}
 
             {(isOverview || activeTool === "places") && <ToolCard id="places" className="tool-card--places">
               <div className="places-visual"><div className="places-visual__overlay" /><div className="places-visual__label"><span className="eyebrow">03 / MAP INDEX</span><strong>Find a place<br />to begin.</strong></div><div className="map-crosshair"><span /><span /></div></div>
-              <div className="tool-card__body"><SectionIntro index="03" eyebrow="Place query" title="Random Places Explorer" description="Turn a country and a place type into ready-to-search Google Maps prompts." icon={Map} note="SEARCH IDEAS" /><div className="tool-controls tool-controls--three"><SelectControl label="Place type" value={placeType} onChange={setPlaceType} options={placeTypeOptions} /><SelectControl label="Queries" value={placeCount} onChange={setPlaceCount} options={liveResultCountOptions} /><button className="primary-button" onClick={generatePlacesNow} type="button"><RefreshCw size={15} /> Build map queries</button><button className="secondary-button" onClick={() => copyAllResults(places, (place) => cleanPlaceResult(place, country.name), country.name, false)} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(places.map((place) => cleanPlaceResult(place, country.name)).join("\n"), "places-results.txt")} disabled={!places.length} type="button"><Download size={15} /> Download results</button></div><div className="notice-banner notice-banner--teal"><Target size={16} /><span><strong>{livePlacesQuery.isLoading ? "Loading live source" : livePlacesQuery.error ? "Live source unavailable" : "Live source"}</strong> — {livePlacesQuery.error ? (isLiveQuotaError(livePlacesQuery.error) ? "Google Maps quota reached; retry later." : "Google Maps returned an error; no synthetic fallback is used.") : livePlacesQuery.data?.[0]?.source.source ?? "Waiting for Google Maps Places"}. {livePlacesQuery.data?.[0]?.source.endpoint ? `Endpoint: ${livePlacesQuery.data[0].source.endpoint}. ` : ""}{livePlacesQuery.data?.[0]?.source.fetchedAt ? `Fetched ${new Date(livePlacesQuery.data[0].source.fetchedAt).toLocaleString()}.` : ""}</span></div>{!livePlacesQuery.isLoading && !livePlacesQuery.error && places.length === 0 && <div className="preview-note">No live place records were returned for this country and type.</div>}<div className="place-list">{placePreview.map((place) => <article className="place-row" key={place.id}><div className="place-icon"><Map size={16} /></div><div className="place-copy"><div><Badge variant="outline" className="soft-badge soft-badge--teal">{place.placeType}</Badge><span className="place-region">{place.region}</span></div><strong>{place.query}</strong><small>{place.city}, {place.country}</small></div></article>)}</div><div className="preview-note">Previewing {placePreview.length.toLocaleString()} of {places.length.toLocaleString()} live place records. The full collection stays in memory.</div></div>
+              <div className="tool-card__body"><SectionIntro index="03" eyebrow="Place query" title="Random Places Explorer" description="Turn a country and a place type into ready-to-search Google Maps prompts." icon={Map} note="SEARCH IDEAS" /><div className="tool-controls tool-controls--three"><SelectControl label="Place type" value={placeType} onChange={setPlaceType} options={placeTypeOptions} /><SelectControl label="Queries" value={placeCount} onChange={setPlaceCount} options={liveResultCountOptions} /><button className="primary-button" onClick={generatePlacesNow} type="button"><RefreshCw size={15} /> Build map queries</button><button className="secondary-button" onClick={() => copyAllResults(places, (place) => cleanPlaceResult(place, country.name), country.name, false)} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(places.map((place) => cleanPlaceResult(place, country.name)).join("\n"), "places-results.txt")} disabled={!places.length} type="button"><Download size={15} /> Download results</button></div><div className="notice-banner notice-banner--teal"><Target size={16} /><span><strong>{livePlacesQuery.isLoading ? "Loading live source" : livePlacesQuery.error ? "Live source unavailable" : "Live source"}</strong> — {livePlacesQuery.error ? (isLiveQuotaError(livePlacesQuery.error) ? "Google Maps quota reached; retry later." : "Google Maps returned an error; no synthetic fallback is used.") : livePlacesQuery.data?.source?.source ?? "Waiting for Google Maps Places"}. {livePlacesQuery.data?.source?.endpoint ? `Endpoint: ${livePlacesQuery.data.source.endpoint}. ` : ""}{livePlacesQuery.data?.source?.fetchedAt ? `Fetched ${new Date(livePlacesQuery.data.source.fetchedAt).toLocaleString()}.` : ""}</span></div><QualityCounters quality={placeQuality} />{!livePlacesQuery.isLoading && !livePlacesQuery.error && places.length === 0 && <div className="preview-note">No live place records were returned for this country and type.</div>}<div className="place-list">{placePreview.map((place) => <article className="place-row" key={place.id}><div className="place-icon"><Map size={16} /></div><div className="place-copy"><div><Badge variant="outline" className="soft-badge soft-badge--teal">{place.placeType}</Badge><span className="place-region">{place.region}</span></div><strong>{place.query}</strong><small>{place.city}, {place.country}</small></div></article>)}</div><div className="preview-note">Previewing {placePreview.length.toLocaleString()} of {places.length.toLocaleString()} live place records. The full collection stays in memory.</div></div>
             </ToolCard>}
 
             {(isOverview || activeTool === "documents") && <ToolCard id="documents" className="tool-card--documents">
               <SectionIntro index="04" eyebrow="Open access route" title="PDF & Book Finder" description="Create short public-document queries in the format: book name + pdf." icon={BookOpen} note="LEGAL DISCOVERY" />
               <div className="tool-controls tool-controls--document"><MultiDocumentTypeSelect selectedTypes={selectedDocumentTypes} onChange={setSelectedDocumentTypes} /><label className="field-control topic-control"><span>Topic</span><span className="input-wrap"><Search size={15} /><input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. javascript" /></span></label><MultiLanguageSelect selectedLanguages={selectedDocumentLanguages} onChange={setSelectedDocumentLanguages} /><SelectControl label="Queries" value={documentCount} onChange={setDocumentCount} options={liveResultCountOptions} /><button className="primary-button" onClick={generateDocumentsNow} type="button"><RefreshCw size={15} /> Build public queries</button><button className="secondary-button" onClick={() => copyAllResults(documents, (document) => stripDocumentSequence(document.query), country.name)} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(documents.map((document) => stripDocumentSequence(document.query)).join("\n"), "pdf-book-results.txt")} disabled={!documents.length} type="button"><Download size={15} /> Download results</button></div>
-              <div className="notice-banner notice-banner--safe"><BookOpen size={16} /><span><strong>{liveDocumentsQuery.isLoading ? "Loading live source" : liveDocumentsQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveDocumentsQuery.error ? (isLiveQuotaError(liveDocumentsQuery.error) ? "Open Library rate limit reached; retry later." : "Open Library returned an error; no synthetic fallback is used.") : liveDocumentsQuery.data?.[0]?.source ?? "Waiting for Open Library"}. {liveDocumentsQuery.data?.[0]?.sourceMeta?.endpoint ? `Endpoint: ${liveDocumentsQuery.data[0].sourceMeta.endpoint}. ` : ""}{liveDocumentsQuery.data?.[0]?.sourceMeta?.fetchedAt ? `Fetched ${new Date(liveDocumentsQuery.data[0].sourceMeta.fetchedAt).toLocaleString()}.` : ""} Only bibliographic records are shown; PDF availability must be verified separately.</span></div>
+              <div className="notice-banner notice-banner--safe"><BookOpen size={16} /><span><strong>{liveDocumentsQuery.isLoading ? "Loading live source" : liveDocumentsQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveDocumentsQuery.error ? (isLiveQuotaError(liveDocumentsQuery.error) ? "Open Library rate limit reached; retry later." : "Open Library returned an error; no synthetic fallback is used.") : liveDocumentsQuery.data?.source?.source ?? "Waiting for Open Library"}. {liveDocumentsQuery.data?.source?.endpoint ? `Endpoint: ${liveDocumentsQuery.data.source.endpoint}. ` : ""}{liveDocumentsQuery.data?.source?.fetchedAt ? `Fetched ${new Date(liveDocumentsQuery.data.source.fetchedAt).toLocaleString()}.` : ""} Only bibliographic records are shown; PDF availability must be verified separately.</span></div><QualityCounters quality={documentQuality} />
               {!liveDocumentsQuery.isLoading && !liveDocumentsQuery.error && documents.length === 0 && <div className="preview-note">No live library records were returned for this topic.</div>}<div className="document-list">{documentPreview.map((document) => <article className="document-row" key={document.id}><div className="document-index">PDF</div><div className="document-copy"><strong>{stripDocumentSequence(document.query)}</strong></div></article>)}</div><div className="preview-note">Previewing {documentPreview.length.toLocaleString()} of {documents.length.toLocaleString()} live library records. The full collection stays in memory.</div>
             </ToolCard>}
           </div>

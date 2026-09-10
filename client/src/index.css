@@ -709,6 +709,24 @@
   justify-content: flex-end;
 }
 
+.quality-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  align-items: center;
+  padding: 0.65rem 1.35rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted-foreground);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.quality-counters strong { color: var(--foreground); }
+.quality-status { color: var(--teal); }
+.quality-status--partial { color: var(--orange); }
+
 @media (max-width: 680px) {
   .workspace-toolbar:has(.country-multi-select) { justify-content: stretch; }
 }
