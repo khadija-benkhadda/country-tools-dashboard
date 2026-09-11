@@ -476,31 +476,59 @@ export default function Home() {
   const closeMobileNav = () => setMobileNavOpen(false);
 
   const generateTrendsNow = async () => {
-    const result = await liveTrendsQuery.refetch();
-    if (result.data) { setTrends(result.data.rows as TrendIdea[]); setTrendQuality(result.data.quality); }
-    setLastAction(`Live ${trendCategory.toLowerCase()} pulse loaded`);
-    toast.success("Live trends refreshed");
+    try {
+      const result = await liveTrendsQuery.refetch();
+      if (result.error) throw result.error;
+      if (result.data) { setTrends(result.data.rows as TrendIdea[]); setTrendQuality(result.data.quality); }
+      setLastAction(`Live ${trendCategory.toLowerCase()} pulse loaded`);
+      toast.success(`${result.data?.quality.displayed ?? 0} live trends loaded`);
+    } catch (error) {
+      setTrends([]);
+      setTrendQuality(makeDataQuality(parseResultCount(trendCount), 0, 0));
+      toast.error(isLiveQuotaError(error) ? "Google Trends rate limit reached. Please retry shortly." : `Google Trends unavailable: ${error instanceof Error ? error.message : "unknown source error"}`);
+    }
   };
 
   const generateAddressesNow = async () => {
-    const result = await liveAddressesQuery.refetch();
-    if (result.data) { setAddresses(result.data.rows as SyntheticAddress[]); setAddressQuality(result.data.quality); }
-    setLastAction("Live addresses loaded");
-    toast.success("Live addresses refreshed");
+    try {
+      const result = await liveAddressesQuery.refetch();
+      if (result.error) throw result.error;
+      if (result.data) { setAddresses(result.data.rows as SyntheticAddress[]); setAddressQuality(result.data.quality); }
+      setLastAction("Live addresses loaded");
+      toast.success(`${result.data?.quality.displayed ?? 0} live addresses loaded`);
+    } catch (error) {
+      setAddresses([]);
+      setAddressQuality(makeDataQuality(parseResultCount(addressCount), 0, 0));
+      toast.error(`Address source unavailable: ${error instanceof Error ? error.message : "unknown source error"}`);
+    }
   };
 
   const generatePlacesNow = async () => {
-    const result = await livePlacesQuery.refetch();
-    if (result.data) { setPlaces(result.data.rows as PlaceQuery[]); setPlaceQuality(result.data.quality); }
-    setLastAction("Live places loaded");
-    toast.success("Live places refreshed");
+    try {
+      const result = await livePlacesQuery.refetch();
+      if (result.error) throw result.error;
+      if (result.data) { setPlaces(result.data.rows as PlaceQuery[]); setPlaceQuality(result.data.quality); }
+      setLastAction("Live places loaded");
+      toast.success(`${result.data?.quality.displayed ?? 0} live places loaded`);
+    } catch (error) {
+      setPlaces([]);
+      setPlaceQuality(makeDataQuality(parseResultCount(placeCount), 0, 0));
+      toast.error(`Places source unavailable: ${error instanceof Error ? error.message : "unknown source error"}`);
+    }
   };
 
   const generateDocumentsNow = async () => {
-    const result = await liveDocumentsQuery.refetch();
-    if (result.data) { setDocuments(result.data.rows as DocumentQuery[]); setDocumentQuality(result.data.quality); }
-    setLastAction("Live library records loaded");
-    toast.success("Live book records refreshed");
+    try {
+      const result = await liveDocumentsQuery.refetch();
+      if (result.error) throw result.error;
+      if (result.data) { setDocuments(result.data.rows as DocumentQuery[]); setDocumentQuality(result.data.quality); }
+      setLastAction("Live library records loaded");
+      toast.success(`${result.data?.quality.displayed ?? 0} live library records loaded`);
+    } catch (error) {
+      setDocuments([]);
+      setDocumentQuality(makeDataQuality(parseResultCount(documentCount), 0, 0));
+      toast.error(`Open Library unavailable: ${error instanceof Error ? error.message : "unknown source error"}`);
+    }
   };
 
   const replyParts: Record<string, { openers: string[]; middles: string[]; closers: string[] }> = {
@@ -615,7 +643,7 @@ export default function Home() {
             {(isOverview || activeTool === "trends") && <ToolCard id="trends" className="tool-card--wide">
               <SectionIntro index="01" eyebrow="Trend signal" title="Google Trends Explorer" description="Generate keyword ideas and validate them in Google Trends over the last 7 days." icon={Flame} note="LIVE RSS DATA" />
               <div className="tool-controls tool-controls--trends"><SelectControl label="Category" value={trendCategory} onChange={setTrendCategory} options={trendCategoryOptions} /><SelectControl label="Results" value={trendCount} onChange={setTrendCount} options={liveResultCountOptions} /><button className="primary-button" onClick={generateTrendsNow} type="button"><RefreshCw size={15} /> Build trend set</button><button className="secondary-button" onClick={() => copyToClipboard(trends.map((trend) => trend.keyword).join("\n"), "Copied")} disabled={!trends.length} type="button"><Clipboard size={15} /> Copy all results</button><button className="secondary-button" onClick={() => downloadResults(trends.map((trend) => trend.keyword).join("\n"), "trends-results.txt")} disabled={!trends.length} type="button"><Download size={15} /> Download results</button></div>
-              <div className="notice-banner"><Lightbulb size={16} /><span><strong>{liveTrendsQuery.isLoading ? "Loading live source" : liveTrendsQuery.error ? "Live source unavailable" : "Live source"}</strong> — {liveTrendsQuery.error ? (isLiveQuotaError(liveTrendsQuery.error) ? "Google Trends RSS rate limit reached; retry later." : "Google Trends RSS returned an error; no synthetic fallback is used.") : liveTrendsQuery.data?.source?.source ?? "Waiting for Google Trends RSS"}. {liveTrendsQuery.data?.source?.endpoint ? `Endpoint: ${liveTrendsQuery.data.source.endpoint}. ` : ""}{liveTrendsQuery.data?.source?.fetchedAt ? `Fetched ${new Date(liveTrendsQuery.data.source.fetchedAt).toLocaleString()}.` : ""}</span></div><QualityCounters quality={trendQuality} />
+              <div className="notice-banner"><Lightbulb size={16} /><span><strong>{liveTrendsQuery.isLoading ? "Loading live source" : liveTrendsQuery.error ? "Live source unavailable" : liveTrendsQuery.data?.sourceErrors?.length ? "Partial live sources" : "Live source"}</strong> — {liveTrendsQuery.error ? (isLiveQuotaError(liveTrendsQuery.error) ? "Google Trends RSS rate limit reached; retry later." : "Google Trends RSS returned an error; no synthetic fallback is used.") : liveTrendsQuery.data?.source?.source ?? "Waiting for Google Trends RSS"}. {liveTrendsQuery.data?.source?.endpoint ? `Endpoint: ${liveTrendsQuery.data.source.endpoint}. ` : ""}{liveTrendsQuery.data?.source?.fetchedAt ? `Fetched ${new Date(liveTrendsQuery.data.source.fetchedAt).toLocaleString()}. ` : ""}{liveTrendsQuery.data?.sourceErrors?.length ? `Unavailable feeds: ${liveTrendsQuery.data.sourceErrors.join(", ")}.` : ""}</span></div><QualityCounters quality={trendQuality} />
               {!liveTrendsQuery.isLoading && !liveTrendsQuery.error && trends.length === 0 && <div className="preview-note">No live trend records were returned for this country and filter.</div>}{trendPreview.length > 0 && <div className="result-table result-table--trends"><div className="table-head"><span>#</span><span>Keyword / topic</span><span>Category</span><span>Google Trends</span></div>{trendPreview.map((trend, index) => <div className="table-row" key={trend.id}><span className="row-number">{String(index + 1).padStart(2, "0")}</span><div className="result-main"><a className="trend-keyword-link" href={openGoogleTrends(trend.searchQuery)} target="_blank" rel="noreferrer">{trend.keyword}</a></div><Badge variant="outline" className="soft-badge">{trend.category}</Badge><a className="trend-validate-link" href={openGoogleTrends(trend.searchQuery)} target="_blank" rel="noreferrer">Last 7 days ↗</a></div>)}</div>}
               {trends.length > trendPreview.length && <div className="preview-note">Previewing {trendPreview.length.toLocaleString()} of {trends.length.toLocaleString()} live trend records. The full collection stays in memory.</div>}
             </ToolCard>}

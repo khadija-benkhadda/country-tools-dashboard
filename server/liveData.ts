@@ -6,7 +6,7 @@ export type LiveTrend = { id: string; keyword: string; category: string; trendTy
 export type LiveAddress = { id: string; formatted: string; houseNumber?: number; street: string; city: string; region: string; postalCode: string; country: string; source: SourceMeta };
 export type LivePlace = { id: string; query: string; placeType: string; city: string; region: string; country: string; mapsUrl: string; source: SourceMeta };
 export type LiveDocument = { id: string; query: string; title: string; author: string; year: string; key: string; contentType: string; topic: string; source: string; resourceUrl: string; sourceMeta: SourceMeta };
-export type QualityResult<T> = QualityBatch<T> & { source?: SourceMeta };
+export type QualityResult<T> = QualityBatch<T> & { source?: SourceMeta; sourceErrors?: string[] };
 
 const now = () => new Date().toISOString();
 const requestedCount = (count: number) => Math.max(1, Math.min(Math.trunc(count), 1000));
@@ -33,15 +33,19 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 export async function fetchTrends(countryCode: string, count: number, category: string): Promise<QualityResult<LiveTrend>> {
-  const requested = requestedCount(count); const codes = countryCode.split(",").map((code) => code.trim().toUpperCase()).filter(Boolean); const all: LiveTrend[] = [];
+  const requested = requestedCount(count); const codes = countryCode.split(",").map((code) => code.trim().toUpperCase()).filter(Boolean); const all: LiveTrend[] = []; const sourceErrors: string[] = [];
   for (const code of codes) {
-    const endpoint = `https://trends.google.com/trending/rss?geo=${encodeURIComponent(code)}`; const response = await fetch(endpoint, { headers: { Accept: "application/rss+xml, application/xml", "User-Agent": "CountryTools/1.0" } });
-    if (!response.ok) throw new Error(response.status === 429 ? "LIVE_QUOTA_EXCEEDED" : `Google Trends RSS failed: ${response.status}`);
-    const xml = await response.text(); if (/OVER_QUERY_LIMIT|RESOURCE_EXHAUSTED/i.test(xml)) throw new Error("LIVE_QUOTA_EXCEEDED");
-    const source: SourceMeta = { source: "Google Trends Trending RSS", endpoint, fetchedAt: now(), mode: "live" }; const keywords = Array.from(xml.matchAll(/<item>[\s\S]*?<title>([^<]+)<\/title>[\s\S]*?<\/item>/g)).map((match) => match[1]?.trim() ?? "").filter(Boolean);
-    all.push(...keywords.map((keyword, index) => ({ id: `trend-${code}-${index}`, keyword, category, trendType: "Live trending search", searchQuery: keyword, source })));
+    try {
+      const endpoint = `https://trends.google.com/trending/rss?geo=${encodeURIComponent(code)}`; const response = await fetch(endpoint, { headers: { Accept: "application/rss+xml, application/xml", "User-Agent": "CountryTools/1.0" } });
+      if (!response.ok) throw new Error(response.status === 429 ? "LIVE_QUOTA_EXCEEDED" : `HTTP ${response.status}`);
+      const xml = await response.text(); if (/OVER_QUERY_LIMIT|RESOURCE_EXHAUSTED/i.test(xml)) throw new Error("LIVE_QUOTA_EXCEEDED");
+      const source: SourceMeta = { source: "Google Trends Trending RSS", endpoint, fetchedAt: now(), mode: "live" }; const keywords = Array.from(xml.matchAll(/<item>[\s\S]*?<title>([^<]+)<\/title>[\s\S]*?<\/item>/g)).map((match) => match[1]?.trim() ?? "").filter(Boolean);
+      all.push(...keywords.map((keyword, index) => ({ id: `trend-${code}-${index}`, keyword, category, trendType: "Live trending search", searchQuery: keyword, source })));
+    } catch (error) {
+      sourceErrors.push(`${code}: ${error instanceof Error ? error.message : "source error"}`);
+    }
   }
-  const result = finish(requested, all.length, all, (row) => normalizeForDeduplication(row.keyword)); return { ...result, source: all[0]?.source };
+  const result = finish(requested, all.length, all, (row) => normalizeForDeduplication(row.keyword)); return { ...result, source: all[0]?.source, sourceErrors };
 }
 
 type MapsPlaceRow = { place_id?: string; name?: string; formatted_address?: string; types?: string[] }; type MapsPlacesResponse = { results?: MapsPlaceRow[]; status?: string; next_page_token?: string };
